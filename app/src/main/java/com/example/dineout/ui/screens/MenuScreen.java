@@ -12,8 +12,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.dineout.R;
 import com.example.dineout.adapters.MenuAdapter;
 import com.example.dineout.data.Restaurant;
+import com.example.dineout.data.MenuItem;
 import com.example.dineout.managers.CartManager;
+import com.google.android.material.button.MaterialButton;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MenuScreen extends AppCompatActivity implements MenuAdapter.OnMenuItemClickListener, CartManager.CartUpdateListener {
@@ -25,16 +29,19 @@ public class MenuScreen extends AppCompatActivity implements MenuAdapter.OnMenuI
     private MenuAdapter menuAdapter;
     private CartManager cartManager;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+    private TextView cartItemsCountText;
+    private TextView cartTotalText;
+    private MaterialButton viewCartButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu_screen);
 
-        // Get restaurant from intent
+        // Get restaurant data from intent
         restaurant = getIntent().getParcelableExtra("restaurant");
         if (restaurant == null) {
-            Toast.makeText(this, "Error: Restaurant information not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error: Restaurant data not found", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -44,39 +51,67 @@ public class MenuScreen extends AppCompatActivity implements MenuAdapter.OnMenuI
         restaurantCuisineText = findViewById(R.id.restaurant_cuisine);
         restaurantRatingText = findViewById(R.id.restaurant_rating);
         menuRecyclerView = findViewById(R.id.menu_recycler_view);
-
-        // Check if all required views were found
-        if (restaurantNameText == null || restaurantCuisineText == null || 
-            restaurantRatingText == null || menuRecyclerView == null) {
-            Toast.makeText(this, "Error: Could not initialize UI components", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        cartItemsCountText = findViewById(R.id.cart_items_count);
+        cartTotalText = findViewById(R.id.cart_total);
+        viewCartButton = findViewById(R.id.view_cart_button);
 
         // Setup toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                getSupportActionBar().setTitle(restaurant.getName());
-            }
-        }
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(restaurant.getName());
 
         // Set restaurant details
         restaurantNameText.setText(restaurant.getName());
         restaurantCuisineText.setText(restaurant.getCuisine());
-        restaurantRatingText.setText(getString(R.string.rating_format, restaurant.getRating()));
+        restaurantRatingText.setText(String.format(Locale.getDefault(), "%.1f ★", restaurant.getRating()));
 
         // Setup RecyclerView
-        menuRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        menuAdapter = new MenuAdapter(restaurant.getMenu());
+        menuAdapter = new MenuAdapter(new ArrayList<>());
         menuAdapter.setOnMenuItemClickListener(this);
+        menuRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         menuRecyclerView.setAdapter(menuAdapter);
 
         // Initialize CartManager
         cartManager = CartManager.getInstance();
         cartManager.addCartUpdateListener(this);
+
+        // Setup view cart button
+        viewCartButton.setOnClickListener(v -> {
+            if (cartManager.getTotalItems() > 0) {
+                Intent intent = new Intent(this, CartScreen.class);
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Load menu items
+        loadMenuItems();
+    }
+
+    private void loadMenuItems() {
+        // TODO: Load menu items from API or database
+        // For now, create some sample menu items
+        List<MenuItem> menuItems = new ArrayList<>();
+        
+        // Add sample menu items based on restaurant cuisine
+        String cuisine = restaurant.getCuisine().toLowerCase();
+        if (cuisine.contains("greek")) {
+            menuItems.add(new MenuItem("1", "Moussaka", "Layers of eggplant, potatoes, and ground meat topped with béchamel sauce", 15.99));
+            menuItems.add(new MenuItem("2", "Souvlaki", "Grilled meat skewers served with pita bread and tzatziki", 12.99));
+            menuItems.add(new MenuItem("3", "Greek Salad", "Fresh vegetables with feta cheese and olive oil", 8.99));
+        } else if (cuisine.contains("mediterranean")) {
+            menuItems.add(new MenuItem("4", "Hummus", "Chickpea dip with olive oil and spices", 6.99));
+            menuItems.add(new MenuItem("5", "Falafel Plate", "Crispy chickpea patties with tahini sauce", 11.99));
+            menuItems.add(new MenuItem("6", "Shawarma", "Marinated meat wrapped in pita bread", 13.99));
+        } else {
+            menuItems.add(new MenuItem("7", "Burger", "Classic beef burger with cheese and vegetables", 9.99));
+            menuItems.add(new MenuItem("8", "Fries", "Crispy golden fries", 4.99));
+            menuItems.add(new MenuItem("9", "Milkshake", "Creamy vanilla milkshake", 5.99));
+        }
+        
+        menuAdapter.updateItems(menuItems);
     }
 
     @Override
@@ -91,17 +126,19 @@ public class MenuScreen extends AppCompatActivity implements MenuAdapter.OnMenuI
             onBackPressed();
             return true;
         } else if (item.getItemId() == R.id.action_cart) {
-            Intent intent = new Intent(this, CartScreen.class);
-            intent.putExtra("restaurant_id", restaurant.getId());
-            intent.putExtra("restaurant_name", restaurant.getName());
-            startActivity(intent);
+            if (cartManager.getTotalItems() > 0) {
+                Intent intent = new Intent(this, CartScreen.class);
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public void onMenuItemClick(com.example.dineout.data.MenuItem item, int quantity) {
+    public void onMenuItemClick(MenuItem item, int quantity) {
         for (int i = 0; i < quantity; i++) {
             cartManager.addItem(item);
         }
@@ -110,7 +147,12 @@ public class MenuScreen extends AppCompatActivity implements MenuAdapter.OnMenuI
 
     @Override
     public void onCartUpdated() {
-        // Update UI if needed
+        int totalItems = cartManager.getTotalItems();
+        double total = cartManager.getTotal();
+        
+        cartItemsCountText.setText(totalItems + " items");
+        cartTotalText.setText(currencyFormat.format(total));
+        viewCartButton.setEnabled(totalItems > 0);
     }
 
     @Override
