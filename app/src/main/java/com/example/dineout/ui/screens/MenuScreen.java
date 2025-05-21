@@ -1,324 +1,121 @@
 package com.example.dineout.ui.screens;
 
-import androidx.compose.foundation.layout.*;
-import androidx.compose.material3.*;
-import androidx.compose.runtime.*;
-import androidx.compose.ui.Alignment;
-import androidx.compose.ui.Modifier;
-import androidx.compose.ui.text.style.TextAlign;
-import androidx.compose.ui.unit.dp;
-import com.example.dineout.data.*;
-import java.util.Map;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.Menu;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.dineout.R;
+import com.example.dineout.adapters.MenuAdapter;
+import com.example.dineout.data.Restaurant;
+import com.example.dineout.managers.CartManager;
+import java.text.NumberFormat;
+import java.util.Locale;
 
-public class MenuScreen {
-    public static final MenuScreen INSTANCE = new MenuScreen();
+public class MenuScreen extends AppCompatActivity implements MenuAdapter.OnMenuItemClickListener, CartManager.CartUpdateListener {
+    private Restaurant restaurant;
+    private TextView restaurantNameText;
+    private TextView restaurantCuisineText;
+    private TextView restaurantRatingText;
+    private RecyclerView menuRecyclerView;
+    private MenuAdapter menuAdapter;
+    private CartManager cartManager;
+    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
-    public void apply(Restaurant restaurant, Runnable onBackClick, Runnable onFavoriteClick,
-                     boolean isFavorite, Runnable onCartClick, Map<MenuItem, Integer> cartItems,
-                     int cartItemCount, Function2<MenuItem, Integer, Unit> onUpdateCart) {
-        Column column = new Column(
-            Modifier.Companion.fillMaxSize(),
-            null,
-            null,
-            null
-        );
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_menu_screen);
 
-        // Top bar
-        Row topBar = new Row(
-            Modifier.Companion.fillMaxWidth().padding(16.dp),
-            Arrangement.Companion.getSpaceBetween(),
-            Alignment.Companion.getCenterVertically(),
-            null
-        );
-
-        IconButton backButton = new IconButton(onBackClick);
-        backButton.setIcon(Icons.Filled.ArrowBack);
-        topBar.add(backButton);
-
-        Text title = new Text(
-            "Menu",
-            null,
-            MaterialTheme.INSTANCE.getTypography().getHeadlineMedium(),
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
-        topBar.add(title);
-
-        Row actions = new Row(
-            null,
-            null,
-            Alignment.Companion.getCenterVertically(),
-            null
-        );
-
-        IconButton favoriteButton = new IconButton(onFavoriteClick);
-        favoriteButton.setIcon(isFavorite ? Icons.Filled.Favorite : Icons.Filled.FavoriteBorder);
-        actions.add(favoriteButton);
-
-        BadgedBox cartBadge = new BadgedBox(
-            cartItemCount > 0 ? new Badge(String.valueOf(cartItemCount)) : null,
-            null,
-            null
-        );
-
-        IconButton cartButton = new IconButton(onCartClick);
-        cartButton.setIcon(Icons.Filled.ShoppingCart);
-        cartBadge.add(cartButton);
-        actions.add(cartBadge);
-
-        topBar.add(actions);
-        column.add(topBar);
-
-        // Menu categories
-        LazyColumn menuList = new LazyColumn(
-            Modifier.Companion.weight(1f).padding(horizontal = 16.dp),
-            null,
-            null,
-            null,
-            null,
-            null
-        );
-
-        for (MenuCategory category : restaurant.getMenu()) {
-            // Category header
-            Text categoryName = new Text(
-                category.getName(),
-                null,
-                MaterialTheme.INSTANCE.getTypography().getHeadlineSmall(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            );
-            menuList.add(categoryName);
-
-            if (category.getDescription() != null && !category.getDescription().isEmpty()) {
-                Text categoryDescription = new Text(
-                    category.getDescription(),
-                    null,
-                    MaterialTheme.INSTANCE.getTypography().getBodyMedium(),
-                    MaterialTheme.INSTANCE.getColorScheme().getOnSurfaceVariant(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                );
-                menuList.add(categoryDescription);
-            }
-
-            Spacer spacer1 = new Spacer(Modifier.Companion.height(8.dp));
-            menuList.add(spacer1);
-
-            // Menu items
-            for (MenuItem item : category.getItems()) {
-                Card itemCard = new Card(
-                    Modifier.Companion.fillMaxWidth().padding(vertical = 8.dp),
-                    null,
-                    null,
-                    null,
-                    null
-                );
-
-                Row itemRow = new Row(
-                    Modifier.Companion.padding(16.dp),
-                    null,
-                    Alignment.Companion.getCenterVertically(),
-                    null
-                );
-
-                // Item image
-                if (item.getImageUrl() != null) {
-                    AsyncImage image = new AsyncImage(
-                        item.getImageUrl(),
-                        item.getName(),
-                        Modifier.Companion.size(80.dp),
-                        null,
-                        ContentScale.Companion.getCrop()
-                    );
-                    itemRow.add(image);
-
-                    Spacer spacer2 = new Spacer(Modifier.Companion.width(16.dp));
-                    itemRow.add(spacer2);
-                }
-
-                // Item details
-                Column itemDetails = new Column(
-                    Modifier.Companion.weight(1f),
-                    null,
-                    null,
-                    null
-                );
-
-                Row nameRow = new Row(
-                    Modifier.Companion.fillMaxWidth(),
-                    Arrangement.Companion.getSpaceBetween(),
-                    Alignment.Companion.getCenterVertically(),
-                    null
-                );
-
-                Text itemName = new Text(
-                    item.getName(),
-                    null,
-                    MaterialTheme.INSTANCE.getTypography().getTitleMedium(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                );
-                nameRow.add(itemName);
-
-                Text itemPrice = new Text(
-                    String.format("$%.2f", item.getPrice()),
-                    null,
-                    MaterialTheme.INSTANCE.getTypography().getTitleMedium(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-                );
-                nameRow.add(itemPrice);
-
-                itemDetails.add(nameRow);
-
-                if (item.getDescription() != null && !item.getDescription().isEmpty()) {
-                    Text itemDescription = new Text(
-                        item.getDescription(),
-                        null,
-                        MaterialTheme.INSTANCE.getTypography().getBodyMedium(),
-                        MaterialTheme.INSTANCE.getColorScheme().getOnSurfaceVariant(),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    );
-                    itemDetails.add(itemDescription);
-                }
-
-                Row tagsRow = new Row(
-                    Modifier.Companion.fillMaxWidth(),
-                    null,
-                    Alignment.Companion.getCenterVertically(),
-                    null
-                );
-
-                if (item.isVegetarian()) {
-                    AssistChip vegChip = new AssistChip(
-                        "Vegetarian",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    );
-                    tagsRow.add(vegChip);
-                }
-
-                if (item.isSpicy()) {
-                    AssistChip spicyChip = new AssistChip(
-                        "Spicy",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    );
-                    tagsRow.add(spicyChip);
-                }
-
-                if (!item.getAllergens().isEmpty()) {
-                    AssistChip allergensChip = new AssistChip(
-                        "Contains allergens",
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    );
-                    tagsRow.add(allergensChip);
-                }
-
-                itemDetails.add(tagsRow);
-                itemRow.add(itemDetails);
-
-                // Quantity controls
-                Row quantityControls = new Row(
-                    null,
-                    null,
-                    Alignment.Companion.getCenterVertically(),
-                    null
-                );
-
-                int quantity = cartItems.getOrDefault(item, 0);
-
-                if (quantity > 0) {
-                    IconButton decreaseButton = new IconButton(() -> onUpdateCart.invoke(item, quantity - 1));
-                    decreaseButton.setIcon(Icons.Filled.Remove);
-                    quantityControls.add(decreaseButton);
-
-                    Text quantityText = new Text(
-                        String.valueOf(quantity),
-                        null,
-                        MaterialTheme.INSTANCE.getTypography().getTitleMedium(),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                    );
-                    quantityControls.add(quantityText);
-                }
-
-                IconButton increaseButton = new IconButton(() -> onUpdateCart.invoke(item, quantity + 1));
-                increaseButton.setIcon(quantity > 0 ? Icons.Filled.Add : Icons.Filled.AddShoppingCart);
-                quantityControls.add(increaseButton);
-
-                itemRow.add(quantityControls);
-                itemCard.add(itemRow);
-                menuList.add(itemCard);
-            }
-
-            Spacer spacer3 = new Spacer(Modifier.Companion.height(16.dp));
-            menuList.add(spacer3);
+        // Get restaurant from intent
+        restaurant = getIntent().getParcelableExtra("restaurant");
+        if (restaurant == null) {
+            Toast.makeText(this, "Error: Restaurant information not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
 
-        column.add(menuList);
+        // Initialize views
+        restaurantNameText = findViewById(R.id.restaurant_name);
+        restaurantCuisineText = findViewById(R.id.restaurant_cuisine);
+        restaurantRatingText = findViewById(R.id.restaurant_rating);
+        menuRecyclerView = findViewById(R.id.menu_recycler_view);
+
+        // Check if all required views were found
+        if (restaurantNameText == null || restaurantCuisineText == null || 
+            restaurantRatingText == null || menuRecyclerView == null) {
+            Toast.makeText(this, "Error: Could not initialize UI components", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // Setup toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle(restaurant.getName());
+            }
+        }
+
+        // Set restaurant details
+        restaurantNameText.setText(restaurant.getName());
+        restaurantCuisineText.setText(restaurant.getCuisine());
+        restaurantRatingText.setText(getString(R.string.rating_format, restaurant.getRating()));
+
+        // Setup RecyclerView
+        menuRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        menuAdapter = new MenuAdapter(restaurant.getMenu());
+        menuAdapter.setOnMenuItemClickListener(this);
+        menuRecyclerView.setAdapter(menuAdapter);
+
+        // Initialize CartManager
+        cartManager = CartManager.getInstance();
+        cartManager.addCartUpdateListener(this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(android.view.MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        } else if (item.getItemId() == R.id.action_cart) {
+            Intent intent = new Intent(this, CartScreen.class);
+            intent.putExtra("restaurant_id", restaurant.getId());
+            intent.putExtra("restaurant_name", restaurant.getName());
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onMenuItemClick(com.example.dineout.data.MenuItem item, int quantity) {
+        for (int i = 0; i < quantity; i++) {
+            cartManager.addItem(item);
+        }
+        Toast.makeText(this, quantity + "x " + item.getName() + " added to cart", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onCartUpdated() {
+        // Update UI if needed
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cartManager.removeCartUpdateListener(this);
     }
 } 

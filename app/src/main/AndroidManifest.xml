@@ -2,11 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Internet permission -->
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- Network state permission -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- Location permissions -->
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -17,29 +17,70 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DineOut"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDFMZO4UX1UNw7Z5USo0SU9Tc9ygN-4CKw" />
+            android:value="AIzaSyCu2EDQyjdjX-UJ_uiMfMttvCB2nQBGDBY" />
 
         <activity
-            android:name=".ui.screens.MapsActivity"
-            android:exported="false"
-            android:label="@string/title_activity_maps" />
-
-        <activity
-            android:name=".MainActivity"
+            android:name=".ui.screens.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.DineOut"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.DineOut">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.screens.MapsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_maps"
+            android:parentActivityName=".ui.screens.MainActivity" />
+
+        <activity
+            android:name=".ui.screens.RestaurantDetailActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:parentActivityName=".ui.screens.MainActivity" />
+
+        <activity
+            android:name=".ui.screens.MenuScreen"
+            android:exported="false"
+            android:label="@string/menu_preview"
+            android:parentActivityName=".ui.screens.RestaurantDetailActivity" />
+
+        <activity
+            android:name=".ui.screens.CartScreen"
+            android:exported="false"
+            android:label="@string/cart"
+            android:parentActivityName=".ui.screens.MainActivity" />
+
+        <activity
+            android:name=".ui.screens.CheckoutScreen"
+            android:exported="false"
+            android:label="@string/checkout"
+            android:parentActivityName=".ui.screens.CartScreen" />
+
+        <activity
+            android:name=".ui.screens.QRCodeScreen"
+            android:exported="false"
+            android:label="@string/order_confirmation"
+            android:parentActivityName=".ui.screens.CheckoutScreen" />
+
+        <activity
+            android:name=".ui.screens.OrderHistoryScreen"
+            android:exported="false"
+            android:parentActivityName=".ui.screens.MainActivity" />
+
+        <activity
+            android:name=".ui.screens.OrderDetailScreen"
+            android:exported="false"
+            android:parentActivityName=".ui.screens.OrderHistoryScreen" />
     </application>
 
 </manifest>

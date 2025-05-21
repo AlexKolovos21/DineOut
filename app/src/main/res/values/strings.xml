@@ -46,6 +46,7 @@
     <string name="location">Location</string>
     <string name="price_range">Price Range</string>
     <string name="order_history">Order History</string>
+    <string name="order_details">Order Details</string>
     <string name="empty_cart">Your cart is empty</string>
     <string name="continue_shopping">Continue Shopping</string>
     <string name="delivery_information">Delivery Information</string>
@@ -67,5 +68,24 @@
     <string name="remove_item">Remove Item</string>
     <string name="return_to_main_menu">Return to Main Menu</string>
     <string name="add_to_cart">Add to Cart</string>
-    <string name="title_activity_maps">MapsActivity</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="restaurant_image">Restaurant image</string>
+    <string name="cart_items_count">%d items in cart</string>
+    <string name="please_enter_address">Please enter your delivery address</string>
+    <string name="order_successful">Order Successful!</string>
+    <string name="show_qr_to_restaurant">Show this QR code to the restaurant staff to collect your order</string>
+    <string name="qr_code">QR Code</string>
+    <string name="done">Done</string>
+    <string name="order_confirmation_message">Order #%s has been placed successfully!</string>
+    <string name="subtotal_format">Subtotal: $%.2f</string>
+    <string name="delivery_fee_format">Delivery Fee: $%.2f</string>
+    <string name="total_format">Total: $%.2f</string>
+    <string name="please_select_payment_method">Please select a payment method</string>
+    <string name="location_not_available">Location not available</string>
+    <string name="location_permission_denied">Location permission is required to show your location</string>
+    <string name="no_order_history">No order history yet</string>
+    <string name="view_details">View Details</string>
+    <string name="restaurant_details">Restaurant Details</string>
+    <string name="menu">Menu</string>
+    <string name="rating_format">Rating: %.1f</string>
 </resources>

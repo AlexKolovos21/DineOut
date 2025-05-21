@@ -2,32 +2,36 @@ package com.example.dineout.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MenuItem implements Parcelable {
-    private final String id;
-    private final String name;
-    private final String description;
-    private final double price;
-    private final String imageUrl;
-    private final boolean isVegetarian;
-    private final boolean isSpicy;
-    private final List<String> allergens;
-    private final Integer calories;
-    private final Integer preparationTime;
+    private String id;
+    private String name;
+    private String description;
+    private double price;
+    private boolean isVegetarian;
+    private boolean isSpicy;
+    private int calories;
+    private int preparationTime;
 
-    public MenuItem(String id, String name, String description, double price, String imageUrl,
-                   boolean isVegetarian, boolean isSpicy, List<String> allergens,
-                   Integer calories, Integer preparationTime) {
+    public MenuItem(String id, String name, String description, double price) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
-        this.imageUrl = imageUrl;
+        this.isVegetarian = false;
+        this.isSpicy = false;
+        this.calories = 0;
+        this.preparationTime = 0;
+    }
+
+    public MenuItem(String id, String name, String description, double price, boolean isVegetarian,
+                   boolean isSpicy, int calories, int preparationTime) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
         this.isVegetarian = isVegetarian;
         this.isSpicy = isSpicy;
-        this.allergens = allergens != null ? new ArrayList<>(allergens) : new ArrayList<>();
         this.calories = calories;
         this.preparationTime = preparationTime;
     }
@@ -37,11 +41,8 @@ public class MenuItem implements Parcelable {
         name = in.readString();
         description = in.readString();
         price = in.readDouble();
-        imageUrl = in.readString();
         isVegetarian = in.readByte() != 0;
         isSpicy = in.readByte() != 0;
-        allergens = new ArrayList<>();
-        in.readStringList(allergens);
         calories = in.readInt();
         preparationTime = in.readInt();
     }
@@ -58,6 +59,38 @@ public class MenuItem implements Parcelable {
         }
     };
 
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public boolean isVegetarian() {
+        return isVegetarian;
+    }
+
+    public boolean isSpicy() {
+        return isSpicy;
+    }
+
+    public int getCalories() {
+        return calories;
+    }
+
+    public int getPreparationTime() {
+        return preparationTime;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -69,23 +102,9 @@ public class MenuItem implements Parcelable {
         dest.writeString(name);
         dest.writeString(description);
         dest.writeDouble(price);
-        dest.writeString(imageUrl);
         dest.writeByte((byte) (isVegetarian ? 1 : 0));
         dest.writeByte((byte) (isSpicy ? 1 : 0));
-        dest.writeStringList(allergens);
-        dest.writeInt(calories != null ? calories : -1);
-        dest.writeInt(preparationTime != null ? preparationTime : -1);
+        dest.writeInt(calories);
+        dest.writeInt(preparationTime);
     }
-
-    // Getters
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public double getPrice() { return price; }
-    public String getImageUrl() { return imageUrl; }
-    public boolean isVegetarian() { return isVegetarian; }
-    public boolean isSpicy() { return isSpicy; }
-    public List<String> getAllergens() { return new ArrayList<>(allergens); }
-    public Integer getCalories() { return calories; }
-    public Integer getPreparationTime() { return preparationTime; }
 } 

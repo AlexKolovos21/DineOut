@@ -1,161 +1,115 @@
 package com.example.dineout;
 
+import android.content.Intent;
 import android.os.Bundle;
-import androidx.activity.ComponentActivity;
-import androidx.compose.foundation.layout.fillMaxSize;
-import androidx.compose.material3.MaterialTheme;
-import androidx.compose.material3.Surface;
-import androidx.compose.runtime.*;
-import androidx.compose.ui.Modifier;
-import androidx.navigation.compose.NavHost;
-import androidx.navigation.compose.composable;
-import androidx.navigation.compose.rememberNavController;
-import com.example.dineout.data.MenuItem;
-import com.example.dineout.data.Order;
+import android.view.Menu;
+import android.view.MenuItem;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.dineout.adapters.RestaurantAdapter;
 import com.example.dineout.data.Restaurant;
-import com.example.dineout.ui.screens.*;
-import com.example.dineout.ui.theme.DineOutTheme;
-import java.util.*;
+import com.example.dineout.ui.screens.CartScreen;
+import com.example.dineout.ui.screens.OrderHistoryScreen;
+import com.example.dineout.ui.screens.RestaurantDetailScreen;
+import java.util.ArrayList;
+import java.util.List;
 
-public class MainActivity extends ComponentActivity {
+public class MainActivity extends AppCompatActivity implements RestaurantAdapter.OnRestaurantClickListener {
+    private RecyclerView recyclerView;
+    private RestaurantAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContent(() -> {
-            DineOutTheme.INSTANCE.apply(() -> {
-                Surface surface = new Surface(
-                    Modifier.Companion.fillMaxSize(),
-                    MaterialTheme.INSTANCE.getColorScheme().getBackground()
-                );
-                
-                NavController navController = rememberNavController();
-                MutableState<Restaurant> currentRestaurant = remember(new MutableState<Restaurant>(null));
-                MutableState<Set<String>> favoriteRestaurants = remember(new MutableState<>(new HashSet<>()));
-                
-                // Cart state management
-                MutableState<Map<MenuItem, Integer>> cartItems = remember(new MutableState<>(new HashMap<>()));
-                MutableState<Integer> cartItemCount = remember(new MutableState<>(0));
-                
-                // Order history state
-                MutableState<List<Order>> orderHistory = remember(new MutableState<>(new ArrayList<>()));
-                
-                // Function to update cart
-                Function2<MenuItem, Integer, Unit> updateCart = (item, quantity) -> {
-                    int currentQuantity = cartItems.getValue().getOrDefault(item, 0);
-                    int newQuantity = quantity;
-                    
-                    // Update total count
-                    cartItemCount.setValue(cartItemCount.getValue() - currentQuantity + (newQuantity > 0 ? newQuantity : 0));
-                    
-                    // Update cart items
-                    Map<MenuItem, Integer> newCartItems = new HashMap<>(cartItems.getValue());
-                    if (newQuantity > 0) {
-                        newCartItems.put(item, newQuantity);
-                    } else {
-                        newCartItems.remove(item);
-                    }
-                    cartItems.setValue(newCartItems);
-                    return Unit.INSTANCE;
-                };
+        setContentView(R.layout.activity_main);
 
-                NavHost navHost = new NavHost(navController, "home");
-                navHost.addComposable("home", () -> {
-                    HomeScreen.INSTANCE.apply(
-                        restaurant -> {
-                            currentRestaurant.setValue(restaurant);
-                            navController.navigate("restaurant_detail");
-                        },
-                        () -> navController.navigate("map"),
-                        () -> navController.navigate("history"),
-                        favoriteRestaurants.getValue()
-                    );
-                });
-                
-                navHost.addComposable("map", () -> {
-                    MapScreen.INSTANCE.apply(
-                        () -> navController.popBackStack(),
-                        restaurant -> {
-                            currentRestaurant.setValue(restaurant);
-                            navController.navigate("restaurant_detail");
-                        },
-                        favoriteRestaurants.getValue()
-                    );
-                });
-                
-                navHost.addComposable("restaurant_detail", () -> {
-                    Restaurant restaurant = currentRestaurant.getValue();
-                    if (restaurant != null) {
-                        RestaurantDetailScreen.INSTANCE.apply(
-                            restaurant,
-                            () -> navController.popBackStack(),
-                            () -> {
-                                Set<String> newFavorites = new HashSet<>(favoriteRestaurants.getValue());
-                                if (newFavorites.contains(restaurant.getId())) {
-                                    newFavorites.remove(restaurant.getId());
-                                } else {
-                                    newFavorites.add(restaurant.getId());
-                                }
-                                favoriteRestaurants.setValue(newFavorites);
-                            },
-                            favoriteRestaurants.getValue().contains(restaurant.getId()),
-                            () -> navController.navigate("menu")
-                        );
-                    }
-                });
-                
-                navHost.addComposable("menu", () -> {
-                    Restaurant restaurant = currentRestaurant.getValue();
-                    if (restaurant != null) {
-                        MenuScreen.INSTANCE.apply(
-                            restaurant,
-                            () -> navController.popBackStack(),
-                            () -> {
-                                Set<String> newFavorites = new HashSet<>(favoriteRestaurants.getValue());
-                                if (newFavorites.contains(restaurant.getId())) {
-                                    newFavorites.remove(restaurant.getId());
-                                } else {
-                                    newFavorites.add(restaurant.getId());
-                                }
-                                favoriteRestaurants.setValue(newFavorites);
-                            },
-                            favoriteRestaurants.getValue().contains(restaurant.getId()),
-                            () -> navController.navigate("cart"),
-                            cartItems.getValue(),
-                            cartItemCount.getValue(),
-                            updateCart
-                        );
-                    }
-                });
-                
-                navHost.addComposable("cart", () -> {
-                    CartScreen.INSTANCE.apply(
-                        currentRestaurant.getValue(),
-                        cartItems.getValue(),
-                        () -> navController.popBackStack(),
-                        order -> {
-                            List<Order> newHistory = new ArrayList<>(orderHistory.getValue());
-                            newHistory.add(order);
-                            orderHistory.setValue(newHistory);
-                            
-                            cartItems.setValue(new HashMap<>());
-                            cartItemCount.setValue(0);
-                        },
-                        updateCart
-                    );
-                });
-                
-                navHost.addComposable("history", () -> {
-                    HistoryScreen.INSTANCE.apply(
-                        orderHistory.getValue(),
-                        () -> navController.popBackStack(),
-                        order -> {
-                            // Could navigate to order details in future
-                        }
-                    );
-                });
-                
-                return surface;
-            });
-        });
+        // Set up toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Set up RecyclerView
+        recyclerView = findViewById(R.id.restaurantRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new RestaurantAdapter(this);
+        recyclerView.setAdapter(adapter);
+
+        // Load sample data
+        loadSampleData();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_cart) {
+            startActivity(new Intent(this, CartScreen.class));
+            return true;
+        } else if (id == R.id.action_history) {
+            startActivity(new Intent(this, OrderHistoryScreen.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRestaurantClick(Restaurant restaurant) {
+        Intent intent = new Intent(this, RestaurantDetailScreen.class);
+        intent.putExtra("restaurant", restaurant);
+        startActivity(intent);
+    }
+
+    private void loadSampleData() {
+        List<Restaurant> restaurants = new ArrayList<>();
+        
+        // Sample restaurant 1
+        Restaurant restaurant1 = new Restaurant(
+            "1",
+            "Greek Delight",
+            "Greek",
+            4.5,
+            37.9715, 23.7267,
+            "123 Main St",
+            "+1 555-0123",
+            "Authentic Greek cuisine with a modern twist",
+            "$$"
+        );
+        restaurants.add(restaurant1);
+
+        // Sample restaurant 2
+        Restaurant restaurant2 = new Restaurant(
+            "2",
+            "Mediterranean Breeze",
+            "Mediterranean",
+            4.3,
+            37.9738, 23.7275,
+            "456 Oak Ave",
+            "+1 555-0124",
+            "Fresh seafood and Mediterranean specialties",
+            "$$$"
+        );
+        restaurants.add(restaurant2);
+
+        // Sample restaurant 3
+        Restaurant restaurant3 = new Restaurant(
+            "3",
+            "Souvlaki Express",
+            "Greek Fast Food",
+            4.0,
+            37.9750, 23.7280,
+            "789 Pine Rd",
+            "+1 555-0125",
+            "Quick and delicious Greek street food",
+            "$"
+        );
+        restaurants.add(restaurant3);
+
+        adapter.updateRestaurants(restaurants);
     }
 } 

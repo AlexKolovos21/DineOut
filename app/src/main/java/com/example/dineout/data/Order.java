@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 public class Order implements Parcelable {
     public static final String STATUS_PENDING = "Pending";
@@ -17,40 +18,39 @@ public class Order implements Parcelable {
     public static final String STATUS_DELIVERED = "Delivered";
     public static final String STATUS_CANCELLED = "Cancelled";
 
-    private final String id;
-    private final String restaurantId;
-    private final String restaurantName;
-    private final Map<MenuItem, Integer> items;
-    private final double total;
-    private final long date;
-    private final String status;
-    private final String deliveryAddress;
-    private final String paymentMethod;
+    private String id;
+    private Map<MenuItem, Integer> items;
+    private String deliveryAddress;
+    private String paymentMethod;
+    private double totalAmount;
+    private long timestamp;
+    private String restaurantId;
+    private String restaurantName;
+    private String status;
 
-    public Order(String id, String restaurantId, String restaurantName, Map<MenuItem, Integer> items,
-                double total, long date, String status, String deliveryAddress, String paymentMethod) {
-        this.id = id;
-        this.restaurantId = restaurantId;
-        this.restaurantName = restaurantName;
+    public Order(Map<MenuItem, Integer> items, String deliveryAddress, String paymentMethod, double totalAmount, String restaurantId, String restaurantName) {
+        this.id = UUID.randomUUID().toString();
         this.items = new HashMap<>(items);
-        this.total = total;
-        this.date = date;
-        this.status = status;
         this.deliveryAddress = deliveryAddress;
         this.paymentMethod = paymentMethod;
+        this.totalAmount = totalAmount;
+        this.timestamp = System.currentTimeMillis();
+        this.restaurantId = restaurantId;
+        this.restaurantName = restaurantName;
+        this.status = STATUS_PENDING;
     }
 
     protected Order(Parcel in) {
         id = in.readString();
-        restaurantId = in.readString();
-        restaurantName = in.readString();
         items = new HashMap<>();
         in.readMap(items, MenuItem.class.getClassLoader());
-        total = in.readDouble();
-        date = in.readLong();
-        status = in.readString();
         deliveryAddress = in.readString();
         paymentMethod = in.readString();
+        totalAmount = in.readDouble();
+        timestamp = in.readLong();
+        restaurantId = in.readString();
+        restaurantName = in.readString();
+        status = in.readString();
     }
 
     public static final Creator<Order> CREATOR = new Creator<Order>() {
@@ -73,19 +73,19 @@ public class Order implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
-        dest.writeString(restaurantId);
-        dest.writeString(restaurantName);
         dest.writeMap(items);
-        dest.writeDouble(total);
-        dest.writeLong(date);
-        dest.writeString(status);
         dest.writeString(deliveryAddress);
         dest.writeString(paymentMethod);
+        dest.writeDouble(totalAmount);
+        dest.writeLong(timestamp);
+        dest.writeString(restaurantId);
+        dest.writeString(restaurantName);
+        dest.writeString(status);
     }
 
     public String getFormattedDate() {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault());
-        return sdf.format(new Date(date));
+        return sdf.format(new Date(timestamp));
     }
 
     public int getTotalItems() {
@@ -93,44 +93,47 @@ public class Order implements Parcelable {
     }
 
     // Getters
-    public String getId() { return id; }
-    public String getRestaurantId() { return restaurantId; }
-    public String getRestaurantName() { return restaurantName; }
-    public Map<MenuItem, Integer> getItems() { return new HashMap<>(items); }
-    public double getTotal() { return total; }
-    public long getDate() { return date; }
-    public String getStatus() { return status; }
-    public String getDeliveryAddress() { return deliveryAddress; }
-    public String getPaymentMethod() { return paymentMethod; }
-}
-
-class CartItem {
-    private final MenuItem menuItem;
-    private final int quantity;
-    private final String specialInstructions;
-
-    public CartItem(MenuItem menuItem, int quantity, String specialInstructions) {
-        this.menuItem = menuItem;
-        this.quantity = quantity;
-        this.specialInstructions = specialInstructions;
+    public String getId() {
+        return id;
     }
 
-    public CartItem(MenuItem menuItem, int quantity) {
-        this(menuItem, quantity, "");
+    public Map<MenuItem, Integer> getItems() {
+        return new HashMap<>(items);
     }
 
-    // Getters
-    public MenuItem getMenuItem() { return menuItem; }
-    public int getQuantity() { return quantity; }
-    public String getSpecialInstructions() { return specialInstructions; }
-}
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
 
-enum OrderStatus {
-    PENDING,
-    CONFIRMED,
-    PREPARING,
-    READY_FOR_PICKUP,
-    OUT_FOR_DELIVERY,
-    DELIVERED,
-    CANCELLED
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public double getSubtotal() {
+        return totalAmount - 2.99; // Subtract delivery fee
+    }
+
+    public double getDeliveryFee() {
+        return 2.99;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public String getRestaurantId() {
+        return restaurantId;
+    }
+
+    public String getRestaurantName() {
+        return restaurantName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
 } 
