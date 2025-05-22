@@ -102,4 +102,5 @@
     <string name="cash_on_delivery">Cash on Delivery</string>
     <string name="credit_card">Credit/Debit Card</string>
     <string name="no_navigation_app">No navigation app available</string>
+    <string name="use_current_location">Use current location</string>
 </resources>

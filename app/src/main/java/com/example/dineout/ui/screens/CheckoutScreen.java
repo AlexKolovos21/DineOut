@@ -3,6 +3,8 @@ package com.example.dineout.ui.screens;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,10 +13,12 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -24,6 +28,7 @@ import com.example.dineout.data.Order;
 import com.example.dineout.data.Restaurant;
 import com.example.dineout.repositories.CartRepository;
 import com.example.dineout.repositories.OrderRepository;
+import com.example.dineout.utils.OrderManager;
 import com.google.android.gms.common.api.Status;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
@@ -34,6 +39,7 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -60,6 +66,7 @@ public class CheckoutScreen extends AppCompatActivity {
     private OrderRepository orderRepository;
     private double selectedLatitude;
     private double selectedLongitude;
+    private String selectedAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,6 +134,16 @@ public class CheckoutScreen extends AppCompatActivity {
 
         // Setup root layout click listener to hide keyboard
         findViewById(R.id.root_layout).setOnClickListener(v -> hideKeyboard());
+
+        // Add current location button next to address input
+        ImageButton currentLocationButton = findViewById(R.id.currentLocationButton);
+        currentLocationButton.setOnClickListener(v -> {
+            if (checkLocationPermission()) {
+                getCurrentLocation();
+            } else {
+                requestLocationPermission();
+            }
+        });
     }
 
     private void hideKeyboard() {
@@ -200,62 +217,39 @@ public class CheckoutScreen extends AppCompatActivity {
     }
 
     private void placeOrder() {
-        if (!validateInputs()) {
-            Log.d(TAG, "Input validation failed");
-            return;
-        }
-
-        // Check if we have valid coordinates
         if (selectedLatitude == 0.0 && selectedLongitude == 0.0) {
-            Log.d(TAG, "No valid coordinates selected");
-            Toast.makeText(this, "Please select a valid delivery address", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Please select a valid delivery address", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Log.d(TAG, String.format("Selected coordinates: lat=%f, lng=%f", selectedLatitude, selectedLongitude));
-        Log.d(TAG, String.format("Restaurant coordinates: lat=%f, lng=%f", restaurant.getLatitude(), restaurant.getLongitude()));
-
-        // Calculate distance to restaurant using selected location
         double distance = restaurant.calculateDistance(selectedLatitude, selectedLongitude);
-        Log.d(TAG, String.format("Calculated distance: %.2f km", distance));
-        
         if (distance > 10) {
             Toast.makeText(this, getString(R.string.distance_too_far, distance), Toast.LENGTH_LONG).show();
             return;
         }
 
-        // Calculate total amount
-        double subtotal = cart.getTotal();
-        double deliveryFee = 2.99;
-        double total = subtotal + deliveryFee;
-
-        Log.d(TAG, String.format("Creating order: subtotal=%.2f, deliveryFee=%.2f, total=%.2f", subtotal, deliveryFee, total));
-
         // Create order
         Order order = new Order(
             cart.getItems(),
-            deliveryAddressEdit.getText().toString(),
+            selectedAddress,
             paymentMethod,
-            total,
+            cart.getTotal(),
             restaurant.getId(),
             restaurant.getName()
         );
 
-        Log.d(TAG, "Saving order to database");
-        // Save order to database
+        // Save order to both Room database and OrderManager
         orderRepository.saveOrder(order, new OrderRepository.OnOrderSavedListener() {
             @Override
             public void onOrderSaved(Order savedOrder) {
-                Log.d(TAG, "Order saved successfully");
+                // Save to OrderManager
+                OrderManager.getInstance(CheckoutScreen.this).addOrder(savedOrder);
+                
                 // Clear cart
                 cart.clear();
-                cartRepository.saveCart(cart);
 
-                // Show success message
-                Toast.makeText(CheckoutScreen.this, R.string.order_placed_success, Toast.LENGTH_SHORT).show();
-
-                // Navigate to order details
-                Intent intent = new Intent(CheckoutScreen.this, OrderDetailScreen.class);
+                // Navigate to QR code screen
+                Intent intent = new Intent(CheckoutScreen.this, QRCodeScreen.class);
                 intent.putExtra("order", savedOrder);
                 startActivity(intent);
                 finish();
@@ -263,9 +257,50 @@ public class CheckoutScreen extends AppCompatActivity {
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "Error saving order: " + error);
                 Toast.makeText(CheckoutScreen.this, error, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        fusedLocationClient.getLastLocation()
+            .addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    selectedLatitude = location.getLatitude();
+                    selectedLongitude = location.getLongitude();
+                    
+                    // Get address from coordinates
+                    Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                    try {
+                        List<Address> addresses = geocoder.getFromLocation(selectedLatitude, selectedLongitude, 1);
+                        if (addresses != null && !addresses.isEmpty()) {
+                            Address address = addresses.get(0);
+                            StringBuilder addressText = new StringBuilder();
+                            for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                                addressText.append(address.getAddressLine(i));
+                                if (i < address.getMaxAddressLineIndex()) {
+                                    addressText.append(", ");
+                                }
+                            }
+                            selectedAddress = addressText.toString();
+                            deliveryAddressEdit.setText(selectedAddress);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+    }
+
+    private boolean checkLocationPermission() {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestLocationPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
     }
 } 

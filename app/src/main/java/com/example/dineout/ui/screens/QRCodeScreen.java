@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import com.example.dineout.R;
 import com.example.dineout.data.Order;
 import com.example.dineout.utils.QRCodeGenerator;
@@ -25,6 +26,20 @@ public class QRCodeScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qr_code_screen);
+
+        // Setup toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(R.string.order_confirmation);
+        
+        // Set home button click listener - directly navigate to main menu
+        toolbar.setNavigationOnClickListener(v -> {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        });
 
         // Initialize views
         qrCodeImageView = findViewById(R.id.qr_code_image);
@@ -68,9 +83,8 @@ public class QRCodeScreen extends AppCompatActivity {
             finish();
         }
 
-        // Setup done button
+        // Setup done button - directly navigate to main menu
         doneButton.setOnClickListener(v -> {
-            // Navigate back to main screen
             Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
