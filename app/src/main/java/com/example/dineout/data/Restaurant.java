@@ -157,4 +157,19 @@ public class Restaurant implements Parcelable {
     public void setMenu(List<MenuItem> menu) {
         this.menu = menu;
     }
+
+    public double calculateDistance(double userLat, double userLng) {
+        final int R = 6371; // Earth's radius in kilometers
+
+        double latDistance = Math.toRadians(latitude - userLat);
+        double lngDistance = Math.toRadians(longitude - userLng);
+        
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(userLat)) * Math.cos(Math.toRadians(latitude))
+                * Math.sin(lngDistance / 2) * Math.sin(lngDistance / 2);
+        
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        return R * c; // Distance in kilometers
+    }
 } 

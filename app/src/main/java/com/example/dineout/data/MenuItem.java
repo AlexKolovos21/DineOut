@@ -14,6 +14,14 @@ public class MenuItem implements Parcelable {
     private int preparationTime;
     private String restaurantId;
     private String restaurantName;
+    private double restaurantLatitude;
+    private double restaurantLongitude;
+    private String restaurantAddress;
+    private String restaurantCuisine;
+    private double restaurantRating;
+    private String restaurantPhone;
+    private String restaurantDescription;
+    private String restaurantPriceRange;
 
     public MenuItem(String id, String name, String description, double price) {
         this.id = id;
@@ -49,6 +57,14 @@ public class MenuItem implements Parcelable {
         preparationTime = in.readInt();
         restaurantId = in.readString();
         restaurantName = in.readString();
+        restaurantLatitude = in.readDouble();
+        restaurantLongitude = in.readDouble();
+        restaurantAddress = in.readString();
+        restaurantCuisine = in.readString();
+        restaurantRating = in.readDouble();
+        restaurantPhone = in.readString();
+        restaurantDescription = in.readString();
+        restaurantPriceRange = in.readString();
     }
 
     public static final Creator<MenuItem> CREATOR = new Creator<MenuItem>() {
@@ -111,6 +127,51 @@ public class MenuItem implements Parcelable {
         this.restaurantName = restaurantName;
     }
 
+    public void setRestaurantInfo(Restaurant restaurant) {
+        this.restaurantId = restaurant.getId();
+        this.restaurantName = restaurant.getName();
+        this.restaurantLatitude = restaurant.getLatitude();
+        this.restaurantLongitude = restaurant.getLongitude();
+        this.restaurantAddress = restaurant.getAddress();
+        this.restaurantCuisine = restaurant.getCuisine();
+        this.restaurantRating = restaurant.getRating();
+        this.restaurantPhone = restaurant.getPhone();
+        this.restaurantDescription = restaurant.getDescription();
+        this.restaurantPriceRange = restaurant.getPriceRange();
+    }
+
+    public double getRestaurantLatitude() {
+        return restaurantLatitude;
+    }
+
+    public double getRestaurantLongitude() {
+        return restaurantLongitude;
+    }
+
+    public String getRestaurantAddress() {
+        return restaurantAddress;
+    }
+
+    public String getRestaurantCuisine() {
+        return restaurantCuisine;
+    }
+
+    public double getRestaurantRating() {
+        return restaurantRating;
+    }
+
+    public String getRestaurantPhone() {
+        return restaurantPhone;
+    }
+
+    public String getRestaurantDescription() {
+        return restaurantDescription;
+    }
+
+    public String getRestaurantPriceRange() {
+        return restaurantPriceRange;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -128,5 +189,13 @@ public class MenuItem implements Parcelable {
         dest.writeInt(preparationTime);
         dest.writeString(restaurantId);
         dest.writeString(restaurantName);
+        dest.writeDouble(restaurantLatitude);
+        dest.writeDouble(restaurantLongitude);
+        dest.writeString(restaurantAddress);
+        dest.writeString(restaurantCuisine);
+        dest.writeDouble(restaurantRating);
+        dest.writeString(restaurantPhone);
+        dest.writeString(restaurantDescription);
+        dest.writeString(restaurantPriceRange);
     }
 } 

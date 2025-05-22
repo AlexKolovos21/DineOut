@@ -1,9 +1,14 @@
 package com.example.dineout.ui.screens;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -12,10 +17,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import com.example.dineout.R;
+import com.example.dineout.data.Cart;
 import com.example.dineout.data.Order;
-import com.example.dineout.managers.CartManager;
-import com.example.dineout.utils.OrderManager;
+import com.example.dineout.data.Restaurant;
+import com.example.dineout.repositories.CartRepository;
+import com.example.dineout.repositories.OrderRepository;
 import com.google.android.gms.common.api.Status;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
@@ -24,6 +32,8 @@ import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -33,21 +43,48 @@ import java.util.Map;
 public class CheckoutScreen extends AppCompatActivity {
     private static final String TAG = "CheckoutScreen";
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
-    private TextInputEditText addressInput;
+
+    private Restaurant restaurant;
+    private Cart cart;
+    private String restaurantName;
+    private PlacesClient placesClient;
+    private FusedLocationProviderClient fusedLocationClient;
+    private TextInputEditText deliveryAddressEdit;
     private RadioGroup paymentMethodGroup;
+    private String paymentMethod;
     private TextView subtotalText;
     private TextView deliveryFeeText;
     private TextView totalText;
-    private CartManager cartManager;
-    private OrderManager orderManager;
-    private String restaurantId;
-    private String restaurantName;
-    private PlacesClient placesClient;
+    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
+    private CartRepository cartRepository;
+    private OrderRepository orderRepository;
+    private double selectedLatitude;
+    private double selectedLongitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkout_screen);
+
+        // Initialize repositories
+        cartRepository = new CartRepository(this);
+        orderRepository = new OrderRepository(this);
+
+        // Initialize location services
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Get data from intent
+        Intent intent = getIntent();
+        if (intent != null) {
+            restaurant = intent.getParcelableExtra("restaurant");
+            cart = intent.getParcelableExtra("cart");
+            if (restaurant == null || cart == null) {
+                Toast.makeText(this, R.string.error_loading_data, Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+            restaurantName = restaurant.getName();
+        }
 
         // Initialize Places API
         if (!Places.isInitialized()) {
@@ -55,18 +92,8 @@ public class CheckoutScreen extends AppCompatActivity {
         }
         placesClient = Places.createClient(this);
 
-        // Get restaurant information from intent
-        restaurantId = getIntent().getStringExtra("restaurant_id");
-        restaurantName = getIntent().getStringExtra("restaurant_name");
-
-        if (restaurantId == null || restaurantName == null) {
-            Toast.makeText(this, "Error: Restaurant information not found", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
         // Initialize views
-        addressInput = findViewById(R.id.address_input);
+        deliveryAddressEdit = findViewById(R.id.address_input);
         paymentMethodGroup = findViewById(R.id.payment_method_group);
         subtotalText = findViewById(R.id.subtotal_amount);
         deliveryFeeText = findViewById(R.id.delivery_fee_amount);
@@ -77,12 +104,8 @@ public class CheckoutScreen extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(R.string.checkout);
 
-        // Initialize managers
-        cartManager = CartManager.getInstance();
-        orderManager = OrderManager.getInstance(this);
-
         // Update totals
-        double subtotal = cartManager.getTotal();
+        double subtotal = cart.getTotal();
         double deliveryFee = 2.99;
         double total = subtotal + deliveryFee;
 
@@ -91,62 +114,29 @@ public class CheckoutScreen extends AppCompatActivity {
         totalText.setText(getString(R.string.total_format, total));
 
         // Setup address input click listener
-        addressInput.setOnClickListener(v -> startAutocomplete());
+        deliveryAddressEdit.setOnClickListener(v -> {
+            hideKeyboard();
+            startAutocomplete();
+        });
 
         // Setup place order button
         findViewById(R.id.place_order_button).setOnClickListener(v -> {
-            String address = addressInput.getText().toString().trim();
-            if (address.isEmpty()) {
-                Toast.makeText(this, R.string.please_enter_address, Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            int selectedPaymentId = paymentMethodGroup.getCheckedRadioButtonId();
-            if (selectedPaymentId == -1) {
-                Toast.makeText(this, R.string.please_select_payment_method, Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            RadioButton selectedPayment = findViewById(selectedPaymentId);
-            String paymentMethod = selectedPayment.getText().toString();
-
-            try {
-                // Get cart items
-                Map<com.example.dineout.data.MenuItem, Integer> cartItems = cartManager.getCartItems();
-                if (cartItems.isEmpty()) {
-                    Toast.makeText(this, "Error: Cart is empty", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                Log.d(TAG, "Creating order with " + cartItems.size() + " items");
-
-                // Create and save order
-                Order order = new Order(
-                    cartItems,
-                    address,
-                    paymentMethod,
-                    total,
-                    restaurantId,
-                    restaurantName
-                );
-
-                // Save order to history
-                orderManager.addOrder(order);
-                Log.d(TAG, "Order saved with ID: " + order.getId());
-
-                // Clear cart
-                cartManager.clearCart();
-
-                // Navigate to QR code screen
-                Intent intent = new Intent(this, QRCodeScreen.class);
-                intent.putExtra("order", order);
-                startActivity(intent);
-                finish();
-            } catch (Exception e) {
-                Log.e(TAG, "Error creating order", e);
-                Toast.makeText(this, "Error creating order: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            hideKeyboard();
+            placeOrder();
         });
+
+        // Setup root layout click listener to hide keyboard
+        findViewById(R.id.root_layout).setOnClickListener(v -> hideKeyboard());
+    }
+
+    private void hideKeyboard() {
+        View view = getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        }
     }
 
     private void startAutocomplete() {
@@ -170,7 +160,11 @@ public class CheckoutScreen extends AppCompatActivity {
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Place place = Autocomplete.getPlaceFromIntent(data);
-                addressInput.setText(place.getAddress());
+                deliveryAddressEdit.setText(place.getAddress());
+                if (place.getLatLng() != null) {
+                    selectedLatitude = place.getLatLng().latitude;
+                    selectedLongitude = place.getLatLng().longitude;
+                }
                 Log.i(TAG, "Place: " + place.getAddress());
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 Status status = Autocomplete.getStatusFromIntent(data);
@@ -180,11 +174,98 @@ public class CheckoutScreen extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(android.view.MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean validateInputs() {
+        String address = deliveryAddressEdit.getText().toString().trim();
+        if (address.isEmpty()) {
+            Toast.makeText(this, R.string.please_enter_address, Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        int selectedPaymentId = paymentMethodGroup.getCheckedRadioButtonId();
+        if (selectedPaymentId == -1) {
+            Toast.makeText(this, R.string.please_select_payment_method, Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        paymentMethod = ((RadioButton) findViewById(selectedPaymentId)).getText().toString();
+        return true;
+    }
+
+    private void placeOrder() {
+        if (!validateInputs()) {
+            Log.d(TAG, "Input validation failed");
+            return;
+        }
+
+        // Check if we have valid coordinates
+        if (selectedLatitude == 0.0 && selectedLongitude == 0.0) {
+            Log.d(TAG, "No valid coordinates selected");
+            Toast.makeText(this, "Please select a valid delivery address", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Log.d(TAG, String.format("Selected coordinates: lat=%f, lng=%f", selectedLatitude, selectedLongitude));
+        Log.d(TAG, String.format("Restaurant coordinates: lat=%f, lng=%f", restaurant.getLatitude(), restaurant.getLongitude()));
+
+        // Calculate distance to restaurant using selected location
+        double distance = restaurant.calculateDistance(selectedLatitude, selectedLongitude);
+        Log.d(TAG, String.format("Calculated distance: %.2f km", distance));
+        
+        if (distance > 10) {
+            Toast.makeText(this, getString(R.string.distance_too_far, distance), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Calculate total amount
+        double subtotal = cart.getTotal();
+        double deliveryFee = 2.99;
+        double total = subtotal + deliveryFee;
+
+        Log.d(TAG, String.format("Creating order: subtotal=%.2f, deliveryFee=%.2f, total=%.2f", subtotal, deliveryFee, total));
+
+        // Create order
+        Order order = new Order(
+            cart.getItems(),
+            deliveryAddressEdit.getText().toString(),
+            paymentMethod,
+            total,
+            restaurant.getId(),
+            restaurant.getName()
+        );
+
+        Log.d(TAG, "Saving order to database");
+        // Save order to database
+        orderRepository.saveOrder(order, new OrderRepository.OnOrderSavedListener() {
+            @Override
+            public void onOrderSaved(Order savedOrder) {
+                Log.d(TAG, "Order saved successfully");
+                // Clear cart
+                cart.clear();
+                cartRepository.saveCart(cart);
+
+                // Show success message
+                Toast.makeText(CheckoutScreen.this, R.string.order_placed_success, Toast.LENGTH_SHORT).show();
+
+                // Navigate to order details
+                Intent intent = new Intent(CheckoutScreen.this, OrderDetailScreen.class);
+                intent.putExtra("order", savedOrder);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Error saving order: " + error);
+                Toast.makeText(CheckoutScreen.this, error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 } 

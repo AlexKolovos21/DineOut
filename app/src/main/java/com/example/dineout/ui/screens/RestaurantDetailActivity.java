@@ -61,10 +61,23 @@ public class RestaurantDetailActivity extends AppCompatActivity {
         viewMenuButton.setOnClickListener(v -> {
             // Populate menu items
             List<com.example.dineout.data.MenuItem> menuItems = new ArrayList<>();
-            menuItems.add(new com.example.dineout.data.MenuItem("1", "Moussaka", "Traditional Greek dish with layers of eggplant and minced meat", 12.99));
-            menuItems.add(new com.example.dineout.data.MenuItem("2", "Souvlaki", "Grilled meat skewers with pita bread", 8.99));
-            menuItems.add(new com.example.dineout.data.MenuItem("3", "Greek Salad", "Fresh vegetables with feta cheese", 7.99));
-            menuItems.add(new com.example.dineout.data.MenuItem("4", "Baklava", "Sweet pastry with nuts and honey", 5.99));
+            
+            com.example.dineout.data.MenuItem item1 = new com.example.dineout.data.MenuItem("1", "Moussaka", "Traditional Greek dish with layers of eggplant and minced meat", 12.99);
+            item1.setRestaurantInfo(restaurant);
+            menuItems.add(item1);
+
+            com.example.dineout.data.MenuItem item2 = new com.example.dineout.data.MenuItem("2", "Souvlaki", "Grilled meat skewers with pita bread", 8.99);
+            item2.setRestaurantInfo(restaurant);
+            menuItems.add(item2);
+
+            com.example.dineout.data.MenuItem item3 = new com.example.dineout.data.MenuItem("3", "Greek Salad", "Fresh vegetables with feta cheese", 7.99);
+            item3.setRestaurantInfo(restaurant);
+            menuItems.add(item3);
+
+            com.example.dineout.data.MenuItem item4 = new com.example.dineout.data.MenuItem("4", "Baklava", "Sweet pastry with nuts and honey", 5.99);
+            item4.setRestaurantInfo(restaurant);
+            menuItems.add(item4);
+
             restaurant.setMenu(menuItems);
 
             Intent intent = new Intent(this, MenuScreen.class);

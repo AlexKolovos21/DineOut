@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.dineout.R;
 import com.example.dineout.adapters.CartAdapter;
+import com.example.dineout.data.Cart;
+import com.example.dineout.data.Restaurant;
 import com.example.dineout.managers.CartManager;
 import com.google.android.material.button.MaterialButton;
 import java.text.NumberFormat;
@@ -65,7 +67,7 @@ public class CartScreen extends AppCompatActivity implements CartManager.CartUpd
         checkoutButton.setOnClickListener(v -> {
             Map<com.example.dineout.data.MenuItem, Integer> cartItems = cartManager.getCartItems();
             if (cartItems.isEmpty()) {
-                Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.empty_cart, Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -75,14 +77,36 @@ public class CartScreen extends AppCompatActivity implements CartManager.CartUpd
             String restaurantName = firstItem.getRestaurantName();
 
             if (restaurantId == null || restaurantName == null) {
-                Toast.makeText(this, "Error: Restaurant information not found", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.error_loading_data, Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            // Create a Cart object from the cart items
+            Cart cart = new Cart();
+            for (Map.Entry<com.example.dineout.data.MenuItem, Integer> entry : cartItems.entrySet()) {
+                for (int i = 0; i < entry.getValue(); i++) {
+                    cart.addItem(entry.getKey());
+                }
+            }
+
+            // Create a Restaurant object with default values for required fields
+            Restaurant restaurant = new Restaurant(
+                restaurantId,                // id
+                restaurantName,             // name
+                firstItem.getRestaurantCuisine(),     // cuisine
+                firstItem.getRestaurantRating(),      // rating
+                firstItem.getRestaurantLatitude(),    // latitude
+                firstItem.getRestaurantLongitude(),   // longitude
+                firstItem.getRestaurantAddress(),     // address
+                firstItem.getRestaurantPhone(),       // phone
+                firstItem.getRestaurantDescription(), // description
+                firstItem.getRestaurantPriceRange()   // priceRange
+            );
+
             // Navigate to checkout screen
             Intent intent = new Intent(this, CheckoutScreen.class);
-            intent.putExtra("restaurant_id", restaurantId);
-            intent.putExtra("restaurant_name", restaurantName);
+            intent.putExtra("restaurant", restaurant);
+            intent.putExtra("cart", cart);
             startActivity(intent);
         });
     }

@@ -89,9 +89,9 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
 
     private List<Restaurant> getDummyRestaurants() {
         List<Restaurant> restaurants = new ArrayList<>();
-        restaurants.add(new Restaurant("1", "Greek Delight", "Greek", 4.5, 0.0, 0.0, "$$", "123 Main St", "Authentic Greek cuisine with a modern twist", ""));
-        restaurants.add(new Restaurant("2", "Mediterranean Breeze", "Mediterranean", 4.3, 0.0, 0.0, "$$$", "456 Oak Ave", "Fresh seafood and Mediterranean specialties", ""));
-        restaurants.add(new Restaurant("3", "Souvlaki Express", "Greek Fast Food", 4.0, 0.0, 0.0, "$", "789 Pine Rd", "Quick and delicious Greek street food", ""));
+        restaurants.add(new Restaurant("1", "Greek Delight", "Greek", 4.5, 37.9715, 23.7267, "$$", "123 Main St", "Authentic Greek cuisine with a modern twist", ""));
+        restaurants.add(new Restaurant("2", "Mediterranean Breeze", "Mediterranean", 4.3, 37.9738, 23.7275, "$$$", "456 Oak Ave", "Fresh seafood and Mediterranean specialties", ""));
+        restaurants.add(new Restaurant("3", "Souvlaki Express", "Greek Fast Food", 4.0, 37.9750, 23.7280, "$", "789 Pine Rd", "Quick and delicious Greek street food", ""));
         return restaurants;
     }
 

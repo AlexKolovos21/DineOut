@@ -1,9 +1,14 @@
 package com.example.dineout.ui.screens;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,17 +24,19 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.InfoWindowAdapter {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private Location lastKnownLocation;
     private FloatingActionButton myLocationButton;
+    private List<RestaurantLocation> restaurantLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +68,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setInfoWindowAdapter(this);
         checkLocationPermission();
     }
 
@@ -96,7 +104,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng athensCenter = new LatLng(37.9838, 23.7275);
         
         // List of restaurant locations in Athens
-        List<RestaurantLocation> restaurantLocations = new ArrayList<>();
+        restaurantLocations = new ArrayList<>();
         restaurantLocations.add(new RestaurantLocation(
             "The Italian Place",
             new LatLng(37.9785, 23.7321), // Plaka area
@@ -125,15 +133,74 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Add markers for each restaurant
         for (RestaurantLocation restaurant : restaurantLocations) {
-            mMap.addMarker(new MarkerOptions()
+            Marker marker = mMap.addMarker(new MarkerOptions()
                     .position(restaurant.location)
                     .title(restaurant.name)
                     .snippet(restaurant.description)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            marker.setTag(restaurant);
         }
 
         // Move camera to Athens center
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(athensCenter, 14));
+    }
+
+    @Override
+    public View getInfoWindow(Marker marker) {
+        return null; // Use default info window background
+    }
+
+    @Override
+    public View getInfoContents(Marker marker) {
+        View view = getLayoutInflater().inflate(R.layout.marker_info_window, null);
+        
+        RestaurantLocation restaurant = (RestaurantLocation) marker.getTag();
+        if (restaurant == null) return null;
+
+        TextView nameText = view.findViewById(R.id.restaurant_name);
+        TextView descriptionText = view.findViewById(R.id.restaurant_description);
+        TextView distanceText = view.findViewById(R.id.distance_text);
+        Button navigateButton = view.findViewById(R.id.navigate_button);
+
+        nameText.setText(restaurant.name);
+        descriptionText.setText(restaurant.description);
+
+        if (lastKnownLocation != null) {
+            float[] results = new float[1];
+            Location.distanceBetween(
+                lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude(),
+                restaurant.location.latitude, restaurant.location.longitude,
+                results
+            );
+            float distanceInKm = results[0] / 1000;
+            distanceText.setText(getString(R.string.distance_format, distanceInKm));
+        } else {
+            distanceText.setText(R.string.no_distance_available);
+        }
+
+        navigateButton.setOnClickListener(v -> {
+            String uri = String.format("google.navigation:q=%f,%f",
+                    restaurant.location.latitude, restaurant.location.longitude);
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            intent.setPackage("com.google.android.apps.maps");
+            
+            // Try to start Google Maps navigation
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            } else {
+                // If Google Maps is not installed, open in browser
+                String browserUri = String.format("https://www.google.com/maps/dir/?api=1&destination=%f,%f",
+                        restaurant.location.latitude, restaurant.location.longitude);
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(browserUri));
+                if (browserIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(browserIntent);
+                } else {
+                    Toast.makeText(this, R.string.no_navigation_app, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        return view;
     }
 
     @Override

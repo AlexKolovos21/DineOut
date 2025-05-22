@@ -43,7 +43,12 @@ public class Order implements Parcelable {
     protected Order(Parcel in) {
         id = in.readString();
         items = new HashMap<>();
-        in.readMap(items, MenuItem.class.getClassLoader());
+        int size = in.readInt();
+        for (int i = 0; i < size; i++) {
+            MenuItem item = in.readParcelable(MenuItem.class.getClassLoader());
+            int quantity = in.readInt();
+            items.put(item, quantity);
+        }
         deliveryAddress = in.readString();
         paymentMethod = in.readString();
         totalAmount = in.readDouble();
@@ -73,7 +78,11 @@ public class Order implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
-        dest.writeMap(items);
+        dest.writeInt(items.size());
+        for (Map.Entry<MenuItem, Integer> entry : items.entrySet()) {
+            dest.writeParcelable(entry.getKey(), flags);
+            dest.writeInt(entry.getValue());
+        }
         dest.writeString(deliveryAddress);
         dest.writeString(paymentMethod);
         dest.writeDouble(totalAmount);

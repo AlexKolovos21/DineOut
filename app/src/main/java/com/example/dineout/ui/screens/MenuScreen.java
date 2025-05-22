@@ -99,48 +99,39 @@ public class MenuScreen extends AppCompatActivity implements MenuAdapter.OnMenuI
         String cuisine = restaurant.getCuisine().toLowerCase();
         if (cuisine.contains("greek")) {
             MenuItem item1 = new MenuItem("1", "Moussaka", "Layers of eggplant, potatoes, and ground meat topped with béchamel sauce", 15.99);
-            item1.setRestaurantId(restaurant.getId());
-            item1.setRestaurantName(restaurant.getName());
+            item1.setRestaurantInfo(restaurant);
             menuItems.add(item1);
 
             MenuItem item2 = new MenuItem("2", "Souvlaki", "Grilled meat skewers served with pita bread and tzatziki", 12.99);
-            item2.setRestaurantId(restaurant.getId());
-            item2.setRestaurantName(restaurant.getName());
+            item2.setRestaurantInfo(restaurant);
             menuItems.add(item2);
 
             MenuItem item3 = new MenuItem("3", "Greek Salad", "Fresh vegetables with feta cheese and olive oil", 8.99);
-            item3.setRestaurantId(restaurant.getId());
-            item3.setRestaurantName(restaurant.getName());
+            item3.setRestaurantInfo(restaurant);
             menuItems.add(item3);
         } else if (cuisine.contains("mediterranean")) {
             MenuItem item4 = new MenuItem("4", "Hummus", "Chickpea dip with olive oil and spices", 6.99);
-            item4.setRestaurantId(restaurant.getId());
-            item4.setRestaurantName(restaurant.getName());
+            item4.setRestaurantInfo(restaurant);
             menuItems.add(item4);
 
             MenuItem item5 = new MenuItem("5", "Falafel Plate", "Crispy chickpea patties with tahini sauce", 11.99);
-            item5.setRestaurantId(restaurant.getId());
-            item5.setRestaurantName(restaurant.getName());
+            item5.setRestaurantInfo(restaurant);
             menuItems.add(item5);
 
             MenuItem item6 = new MenuItem("6", "Shawarma", "Marinated meat wrapped in pita bread", 13.99);
-            item6.setRestaurantId(restaurant.getId());
-            item6.setRestaurantName(restaurant.getName());
+            item6.setRestaurantInfo(restaurant);
             menuItems.add(item6);
         } else {
             MenuItem item7 = new MenuItem("7", "Burger", "Classic beef burger with cheese and vegetables", 9.99);
-            item7.setRestaurantId(restaurant.getId());
-            item7.setRestaurantName(restaurant.getName());
+            item7.setRestaurantInfo(restaurant);
             menuItems.add(item7);
 
             MenuItem item8 = new MenuItem("8", "Fries", "Crispy golden fries", 4.99);
-            item8.setRestaurantId(restaurant.getId());
-            item8.setRestaurantName(restaurant.getName());
+            item8.setRestaurantInfo(restaurant);
             menuItems.add(item8);
 
             MenuItem item9 = new MenuItem("9", "Milkshake", "Creamy vanilla milkshake", 5.99);
-            item9.setRestaurantId(restaurant.getId());
-            item9.setRestaurantName(restaurant.getName());
+            item9.setRestaurantInfo(restaurant);
             menuItems.add(item9);
         }
         

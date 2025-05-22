@@ -5,12 +5,13 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.dineout.R;
-import com.example.dineout.adapters.CartAdapter;
+import com.example.dineout.adapters.OrderItemAdapter;
 import com.example.dineout.data.Order;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -32,7 +33,7 @@ public class OrderDetailScreen extends AppCompatActivity {
     private TextView totalText;
     private RecyclerView itemsRecyclerView;
     private ImageView qrCodeImage;
-    private CartAdapter cartAdapter;
+    private OrderItemAdapter orderItemAdapter;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
     @Override
@@ -66,9 +67,9 @@ public class OrderDetailScreen extends AppCompatActivity {
         getSupportActionBar().setTitle(R.string.order_details);
 
         // Setup RecyclerView
-        cartAdapter = new CartAdapter(null); // Pass null since we don't need cart management here
+        orderItemAdapter = new OrderItemAdapter();
         itemsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        itemsRecyclerView.setAdapter(cartAdapter);
+        itemsRecyclerView.setAdapter(orderItemAdapter);
 
         // Set order details
         restaurantNameText.setText(order.getRestaurantName());
@@ -78,7 +79,7 @@ public class OrderDetailScreen extends AppCompatActivity {
         paymentMethodText.setText(order.getPaymentMethod());
 
         // Set order items
-        cartAdapter.submitList(new ArrayList<>(order.getItems().keySet()), order.getItems());
+        orderItemAdapter.submitList(new ArrayList<>(order.getItems().keySet()), order.getItems());
 
         double subtotal = order.getTotalAmount() - 2.99; // Subtract delivery fee
         subtotalText.setText(currencyFormat.format(subtotal));
@@ -95,9 +96,14 @@ public class OrderDetailScreen extends AppCompatActivity {
             BitMatrix bitMatrix = multiFormatWriter.encode(orderId, BarcodeFormat.QR_CODE, 500, 500);
             BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
             Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
-            qrCodeImage.setImageBitmap(bitmap);
+            if (bitmap != null) {
+                qrCodeImage.setImageBitmap(bitmap);
+            } else {
+                Toast.makeText(this, R.string.qr_code_generation_failed, Toast.LENGTH_SHORT).show();
+            }
         } catch (WriterException e) {
             e.printStackTrace();
+            Toast.makeText(this, getString(R.string.qr_code_generation_error, e.getMessage()), Toast.LENGTH_SHORT).show();
         }
     }
 
