@@ -2,7 +2,6 @@ package com.example.dineout.ui.screens;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,6 +13,11 @@ import com.example.dineout.R;
 import com.example.dineout.adapters.CartAdapter;
 import com.example.dineout.managers.CartManager;
 import com.google.android.material.button.MaterialButton;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class CartScreen extends AppCompatActivity implements CartManager.CartUpdateListener {
     private RecyclerView cartRecyclerView;
@@ -24,6 +28,7 @@ public class CartScreen extends AppCompatActivity implements CartManager.CartUpd
     private MaterialButton checkoutButton;
     private CartAdapter adapter;
     private CartManager cartManager;
+    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +47,7 @@ public class CartScreen extends AppCompatActivity implements CartManager.CartUpd
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Your Cart");
+        getSupportActionBar().setTitle(R.string.cart);
 
         // Initialize CartManager
         cartManager = CartManager.getInstance();
@@ -53,52 +58,72 @@ public class CartScreen extends AppCompatActivity implements CartManager.CartUpd
         cartRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         cartRecyclerView.setAdapter(adapter);
 
+        // Update UI
+        updateUI();
+
         // Setup checkout button
         checkoutButton.setOnClickListener(v -> {
-            if (cartManager.getTotalItems() > 0) {
-                // TODO: Implement actual checkout process
-                Toast.makeText(this, "Proceeding to checkout...", Toast.LENGTH_SHORT).show();
-                // For now, just clear the cart
-                cartManager.clearCart();
-                finish();
-            } else {
+            Map<com.example.dineout.data.MenuItem, Integer> cartItems = cartManager.getCartItems();
+            if (cartItems.isEmpty()) {
                 Toast.makeText(this, "Your cart is empty", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
 
-        // Initial update
-        onCartUpdated();
+            // Get restaurant information from the first item
+            com.example.dineout.data.MenuItem firstItem = cartItems.keySet().iterator().next();
+            String restaurantId = firstItem.getRestaurantId();
+            String restaurantName = firstItem.getRestaurantName();
+
+            if (restaurantId == null || restaurantName == null) {
+                Toast.makeText(this, "Error: Restaurant information not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Navigate to checkout screen
+            Intent intent = new Intent(this, CheckoutScreen.class);
+            intent.putExtra("restaurant_id", restaurantId);
+            intent.putExtra("restaurant_name", restaurantName);
+            startActivity(intent);
+        });
+    }
+
+    private void updateUI() {
+        Map<com.example.dineout.data.MenuItem, Integer> cartItems = cartManager.getCartItems();
+        if (cartItems.isEmpty()) {
+            cartRecyclerView.setVisibility(View.GONE);
+            emptyCartText.setVisibility(View.VISIBLE);
+            checkoutButton.setEnabled(false);
+        } else {
+            cartRecyclerView.setVisibility(View.VISIBLE);
+            emptyCartText.setVisibility(View.GONE);
+            checkoutButton.setEnabled(true);
+
+            // Update adapter
+            adapter.submitList(new ArrayList<>(cartItems.keySet()));
+
+            // Update totals
+            double subtotal = cartManager.getTotal();
+            double deliveryFee = 2.99;
+            double total = subtotal + deliveryFee;
+
+            subtotalText.setText(currencyFormat.format(subtotal));
+            deliveryFeeText.setText(currencyFormat.format(deliveryFee));
+            totalText.setText(currencyFormat.format(total));
+        }
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public void onCartUpdated() {
+        updateUI();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(android.view.MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onCartUpdated() {
-        int totalItems = cartManager.getTotalItems();
-        double subtotal = cartManager.getTotal();
-        double deliveryFee = totalItems > 0 ? 5.99 : 0.0; // Example delivery fee
-        double total = subtotal + deliveryFee;
-
-        // Update UI visibility
-        boolean hasItems = totalItems > 0;
-        cartRecyclerView.setVisibility(hasItems ? View.VISIBLE : View.GONE);
-        emptyCartText.setVisibility(hasItems ? View.GONE : View.VISIBLE);
-        checkoutButton.setEnabled(hasItems);
-
-        // Update prices
-        subtotalText.setText(String.format("$%.2f", subtotal));
-        deliveryFeeText.setText(String.format("$%.2f", deliveryFee));
-        totalText.setText(String.format("$%.2f", total));
-
-        // Update adapter
-        adapter.refreshItems();
     }
 
     @Override

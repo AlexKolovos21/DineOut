@@ -12,6 +12,8 @@ public class MenuItem implements Parcelable {
     private boolean isSpicy;
     private int calories;
     private int preparationTime;
+    private String restaurantId;
+    private String restaurantName;
 
     public MenuItem(String id, String name, String description, double price) {
         this.id = id;
@@ -45,6 +47,8 @@ public class MenuItem implements Parcelable {
         isSpicy = in.readByte() != 0;
         calories = in.readInt();
         preparationTime = in.readInt();
+        restaurantId = in.readString();
+        restaurantName = in.readString();
     }
 
     public static final Creator<MenuItem> CREATOR = new Creator<MenuItem>() {
@@ -91,6 +95,22 @@ public class MenuItem implements Parcelable {
         return preparationTime;
     }
 
+    public String getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(String restaurantId) {
+        this.restaurantId = restaurantId;
+    }
+
+    public String getRestaurantName() {
+        return restaurantName;
+    }
+
+    public void setRestaurantName(String restaurantName) {
+        this.restaurantName = restaurantName;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -106,5 +126,7 @@ public class MenuItem implements Parcelable {
         dest.writeByte((byte) (isSpicy ? 1 : 0));
         dest.writeInt(calories);
         dest.writeInt(preparationTime);
+        dest.writeString(restaurantId);
+        dest.writeString(restaurantName);
     }
 } 

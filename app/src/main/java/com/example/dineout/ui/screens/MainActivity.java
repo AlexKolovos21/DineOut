@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.dineout.R;
 import com.example.dineout.adapters.RestaurantAdapter;
 import com.example.dineout.data.Restaurant;
-import com.example.dineout.utils.CartManager;
+import com.example.dineout.managers.CartManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -117,6 +117,10 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
                 Intent intent = new Intent(this, CartScreen.class);
                 startActivity(intent);
             }
+            return true;
+        } else if (item.getItemId() == R.id.action_history) {
+            Intent intent = new Intent(this, OrderHistoryScreen.class);
+            startActivity(intent);
             return true;
         } else if (item.getItemId() == android.R.id.home) {
             onBackPressed();

@@ -1,7 +1,9 @@
 package com.example.dineout.ui.screens;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -10,8 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.dineout.R;
 import com.example.dineout.adapters.CartAdapter;
 import com.example.dineout.data.Order;
-import com.example.dineout.managers.CartManager;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class OrderDetailScreen extends AppCompatActivity {
@@ -24,6 +31,7 @@ public class OrderDetailScreen extends AppCompatActivity {
     private TextView deliveryFeeText;
     private TextView totalText;
     private RecyclerView itemsRecyclerView;
+    private ImageView qrCodeImage;
     private CartAdapter cartAdapter;
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
@@ -49,6 +57,7 @@ public class OrderDetailScreen extends AppCompatActivity {
         deliveryFeeText = findViewById(R.id.delivery_fee_amount);
         totalText = findViewById(R.id.total_amount);
         itemsRecyclerView = findViewById(R.id.items_recycler_view);
+        qrCodeImage = findViewById(R.id.qr_code_image);
 
         // Setup toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -57,7 +66,7 @@ public class OrderDetailScreen extends AppCompatActivity {
         getSupportActionBar().setTitle(R.string.order_details);
 
         // Setup RecyclerView
-        cartAdapter = new CartAdapter(CartManager.getInstance());
+        cartAdapter = new CartAdapter(null); // Pass null since we don't need cart management here
         itemsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         itemsRecyclerView.setAdapter(cartAdapter);
 
@@ -68,9 +77,28 @@ public class OrderDetailScreen extends AppCompatActivity {
         deliveryAddressText.setText(order.getDeliveryAddress());
         paymentMethodText.setText(order.getPaymentMethod());
 
-        subtotalText.setText(currencyFormat.format(order.getSubtotal()));
-        deliveryFeeText.setText(currencyFormat.format(order.getDeliveryFee()));
+        // Set order items
+        cartAdapter.submitList(new ArrayList<>(order.getItems().keySet()), order.getItems());
+
+        double subtotal = order.getTotalAmount() - 2.99; // Subtract delivery fee
+        subtotalText.setText(currencyFormat.format(subtotal));
+        deliveryFeeText.setText(currencyFormat.format(2.99));
         totalText.setText(currencyFormat.format(order.getTotalAmount()));
+
+        // Generate QR code
+        generateQRCode(order.getId());
+    }
+
+    private void generateQRCode(String orderId) {
+        try {
+            MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
+            BitMatrix bitMatrix = multiFormatWriter.encode(orderId, BarcodeFormat.QR_CODE, 500, 500);
+            BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
+            Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);
+            qrCodeImage.setImageBitmap(bitmap);
+        } catch (WriterException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

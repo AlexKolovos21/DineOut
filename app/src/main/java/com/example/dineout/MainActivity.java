@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -13,6 +14,7 @@ import com.example.dineout.data.Restaurant;
 import com.example.dineout.ui.screens.CartScreen;
 import com.example.dineout.ui.screens.OrderHistoryScreen;
 import com.example.dineout.ui.screens.RestaurantDetailScreen;
+import com.example.dineout.managers.CartManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,10 +51,16 @@ public class MainActivity extends AppCompatActivity implements RestaurantAdapter
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_cart) {
-            startActivity(new Intent(this, CartScreen.class));
+            if (CartManager.getInstance().getCartItems().isEmpty()) {
+                Toast.makeText(this, R.string.empty_cart, Toast.LENGTH_SHORT).show();
+            } else {
+                Intent intent = new Intent(this, CartScreen.class);
+                startActivity(intent);
+            }
             return true;
         } else if (id == R.id.action_history) {
-            startActivity(new Intent(this, OrderHistoryScreen.class));
+            Intent intent = new Intent(this, OrderHistoryScreen.class);
+            startActivity(intent);
             return true;
         }
         return super.onOptionsItemSelected(item);

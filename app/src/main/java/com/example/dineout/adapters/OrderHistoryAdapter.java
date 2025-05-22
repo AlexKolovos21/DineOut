@@ -51,12 +51,13 @@ public class OrderHistoryAdapter extends ListAdapter<Order, OrderHistoryAdapter.
         holder.bind(order, listener);
     }
 
-    class OrderViewHolder extends RecyclerView.ViewHolder {
+    static class OrderViewHolder extends RecyclerView.ViewHolder {
         private final TextView restaurantNameText;
         private final TextView orderDateText;
         private final TextView orderStatusText;
         private final TextView orderTotalText;
         private final MaterialButton viewDetailsButton;
+        private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
         OrderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -74,6 +75,7 @@ public class OrderHistoryAdapter extends ListAdapter<Order, OrderHistoryAdapter.
             orderTotalText.setText(currencyFormat.format(order.getTotalAmount()));
 
             viewDetailsButton.setOnClickListener(v -> listener.onOrderClick(order));
+            itemView.setOnClickListener(v -> listener.onOrderClick(order));
         }
     }
 } 
