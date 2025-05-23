@@ -238,13 +238,10 @@ public class CheckoutScreen extends AppCompatActivity {
             restaurant.getName()
         );
 
-        // Save order to both Room database and OrderManager
+        // Save order
         orderRepository.saveOrder(order, new OrderRepository.OnOrderSavedListener() {
             @Override
             public void onOrderSaved(Order savedOrder) {
-                // Save to OrderManager
-                OrderManager.getInstance(CheckoutScreen.this).addOrder(savedOrder);
-                
                 // Clear cart
                 cart.clear();
 
