@@ -1,4 +1,3 @@
-
 package com.example.dineout.ui.screens
 
 import androidx.compose.foundation.background
@@ -121,19 +120,12 @@ fun MenuScreen(
                 .padding(padding)
         ) {
             // Restaurant image
-            restaurant.imageUrl?.let { url ->
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(url)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = restaurant.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                )
-            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
             
             // Category tabs
             ScrollableTabRow(
@@ -150,7 +142,7 @@ fun MenuScreen(
                     )
                 },
                 indicator = { tabPositions ->
-                    TabRowDefaults.Indicator(
+                    TabRowDefaults.SecondaryIndicator(
                         modifier = Modifier.tabIndicatorOffset(tabPositions[restaurant.menu.indexOfFirst { it.id == selectedCategory }.takeIf { it >= 0 } ?: 0]),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -248,19 +240,7 @@ fun MenuScreenItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left: Image
-            item.imageUrl?.let { imageUrl ->
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = item.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
-            } ?: Box(
+            Box(
                 modifier = Modifier
                     .size(100.dp)
                     .clip(RoundedCornerShape(8.dp))

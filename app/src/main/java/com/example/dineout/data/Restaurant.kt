@@ -87,7 +87,6 @@ val sampleRestaurants = listOf(
         description = "Traditional Greek taverna serving authentic dishes in a cozy atmosphere with outdoor seating under a huge plane tree.",
         priceRange = "€€",
         location = LatLng(37.9685, 23.7319),
-        imageUrl = "https://images.unsplash.com/photo-1535922829847-25ee77a335dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JlZWslMjByZXN0YXVyYW50fGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
         openingHours = mapOf(
             "Monday" to "12:00 - 23:00",
             "Tuesday" to "12:00 - 23:00", 
@@ -109,7 +108,7 @@ val sampleRestaurants = listOf(
                         name = "Tzatziki",
                         description = "Creamy yogurt dip with cucumber, garlic and olive oil",
                         price = 4.50,
-                        imageUrl = "https://images.unsplash.com/photo-1633436375153-d7045cb93e37?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dHphdHppa2l8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -117,7 +116,7 @@ val sampleRestaurants = listOf(
                         name = "Dolmades",
                         description = "Grape leaves stuffed with rice and herbs",
                         price = 5.80,
-                        imageUrl = "https://images.unsplash.com/photo-1556388158-158ea5ccacbd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZG9sbWFkZXN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -125,7 +124,7 @@ val sampleRestaurants = listOf(
                         name = "Saganaki",
                         description = "Pan-fried cheese with lemon",
                         price = 6.50,
-                        imageUrl = "https://images.unsplash.com/photo-1558985045-db258e612831?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c2FnYW5ha2l8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -133,7 +132,7 @@ val sampleRestaurants = listOf(
                         name = "Greek Salad",
                         description = "Tomatoes, cucumbers, onions, feta cheese and olives",
                         price = 7.50,
-                        imageUrl = "https://images.unsplash.com/photo-1551528701-cb99ef6edc31?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Z3JlZWslMjBzYWxhZHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     )
                 )
@@ -148,7 +147,7 @@ val sampleRestaurants = listOf(
                         name = "Moussaka",
                         description = "Layers of eggplant, potatoes and seasoned ground beef topped with béchamel sauce",
                         price = 12.80,
-                        imageUrl = "https://images.unsplash.com/photo-1574484284002-952d92456975?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bW91c3Nha2F8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     ),
                     MenuItem(
@@ -156,7 +155,7 @@ val sampleRestaurants = listOf(
                         name = "Souvlaki Platter",
                         description = "Grilled skewers of marinated pork served with pita, tzatziki and fries",
                         price = 14.50,
-                        imageUrl = "https://images.unsplash.com/photo-1561626423-3509f6e86c13?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c291dmxha2l8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     ),
                     MenuItem(
@@ -164,7 +163,7 @@ val sampleRestaurants = listOf(
                         name = "Pastitsio",
                         description = "Baked pasta with ground beef and béchamel sauce",
                         price = 12.00,
-                        imageUrl = "https://images.unsplash.com/photo-1623259838743-9f1e884fba59?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cGFzdGl0c2lvfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     ),
                     MenuItem(
@@ -172,7 +171,7 @@ val sampleRestaurants = listOf(
                         name = "Gemista",
                         description = "Tomatoes and peppers stuffed with rice and herbs",
                         price = 11.50,
-                        imageUrl = "https://images.unsplash.com/photo-1626196340106-d94fb916c889?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z2VtaXN0YXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     )
                 )
@@ -187,7 +186,7 @@ val sampleRestaurants = listOf(
                         name = "Baklava",
                         description = "Phyllo pastry with nuts and honey",
                         price = 5.50,
-                        imageUrl = "https://images.unsplash.com/photo-1519676867240-f03562e64548?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YmFrbGF2YXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -195,7 +194,7 @@ val sampleRestaurants = listOf(
                         name = "Galaktoboureko",
                         description = "Custard-filled phyllo pastry with syrup",
                         price = 6.00,
-                        imageUrl = "https://images.unsplash.com/photo-1551406368-1697d1552e4f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z2FsYWt0b2JvdXJla298ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -203,7 +202,7 @@ val sampleRestaurants = listOf(
                         name = "Greek Yogurt with Honey",
                         description = "Creamy yogurt topped with honey and walnuts",
                         price = 4.50,
-                        imageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JlZWslMjB5b2d1cnR8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     )
                 )
@@ -223,7 +222,6 @@ val sampleRestaurants = listOf(
         description = "Seafood restaurant specializing in fresh catches of the day with a beautiful view of the harbor.",
         priceRange = "€€",
         location = LatLng(37.9749, 23.7283),
-        imageUrl = "https://images.unsplash.com/photo-1576675466969-38eeae4b41f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8Z3JlZWslMjByZXN0YXVyYW50fGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
         openingHours = mapOf(
             "Monday" to "18:00 - 23:00",
             "Tuesday" to "18:00 - 23:00", 
@@ -245,7 +243,7 @@ val sampleRestaurants = listOf(
                         name = "Grilled Octopus",
                         description = "Tender octopus grilled with olive oil and lemon",
                         price = 12.00,
-                        imageUrl = "https://images.unsplash.com/photo-1614138159368-747d340c9aab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JpbGxlZCUyMG9jdG9wdXN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     ),
                     MenuItem(
@@ -253,7 +251,7 @@ val sampleRestaurants = listOf(
                         name = "Fried Calamari",
                         description = "Crispy fried calamari served with garlic sauce",
                         price = 8.50,
-                        imageUrl = "https://images.unsplash.com/photo-1599487325555-418e502fecc4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZnJpZWQlMjBjYWxhbWFyaXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     ),
                     MenuItem(
@@ -261,7 +259,7 @@ val sampleRestaurants = listOf(
                         name = "Taramasalata",
                         description = "Fish roe dip with olive oil and lemon",
                         price = 5.00,
-                        imageUrl = "https://images.unsplash.com/photo-1589726030399-8a10a94e2cab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dGFyYW1hc2FsYXRhfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     )
                 )
@@ -276,7 +274,7 @@ val sampleRestaurants = listOf(
                         name = "Grilled Sea Bream",
                         description = "Fresh sea bream grilled with olive oil, lemon and herbs",
                         price = 18.00,
-                        imageUrl = "https://images.unsplash.com/photo-1559847844-5315695aa267?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Z3JpbGxlZCUyMGZpc2h8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     ),
                     MenuItem(
@@ -284,7 +282,7 @@ val sampleRestaurants = listOf(
                         name = "Seafood Pasta",
                         description = "Pasta with mixed seafood in tomato sauce",
                         price = 16.50,
-                        imageUrl = "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2VhZm9vZCUyMHBhc3RhfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     ),
                     MenuItem(
@@ -292,7 +290,7 @@ val sampleRestaurants = listOf(
                         name = "Shrimp Saganaki",
                         description = "Shrimp cooked in tomato sauce with feta cheese",
                         price = 15.00,
-                        imageUrl = "https://images.unsplash.com/photo-1627308595171-d1b5d67129c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2hyaW1wJTIwc2FnYW5ha2l8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     )
                 )
@@ -312,7 +310,6 @@ val sampleRestaurants = listOf(
         description = "A traditional Greek café serving home-style food in a rustic setting with a lovely courtyard.",
         priceRange = "€",
         location = LatLng(37.9783, 23.7414),
-        imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Z3JlZWslMjByZXN0YXVyYW50fGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
         openingHours = mapOf(
             "Monday" to "07:00 - 23:00",
             "Tuesday" to "07:00 - 23:00", 
@@ -334,7 +331,7 @@ val sampleRestaurants = listOf(
                         name = "Greek Yogurt with Honey and Nuts",
                         description = "Thick Greek yogurt with honey and mixed nuts",
                         price = 6.00,
-                        imageUrl = "https://images.unsplash.com/photo-1488477181946-6428a0291777?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JlZWslMjB5b2d1cnR8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -342,7 +339,7 @@ val sampleRestaurants = listOf(
                         name = "Spanakopita",
                         description = "Spinach and feta cheese pie in phyllo pastry",
                         price = 4.50,
-                        imageUrl = "https://images.unsplash.com/photo-1574313996699-bb7aca4f4f1c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8c3BhbmFrb3BpdGF8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -350,7 +347,7 @@ val sampleRestaurants = listOf(
                         name = "Greek Omelet",
                         description = "Eggs with tomatoes, feta cheese and herbs",
                         price = 7.50,
-                        imageUrl = "https://images.unsplash.com/photo-1590797144027-eded5a63e192?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b21lbGV0fGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     )
                 )
@@ -365,7 +362,7 @@ val sampleRestaurants = listOf(
                         name = "Beef Stifado",
                         description = "Slow-cooked beef stew with onions and spices",
                         price = 13.50,
-                        imageUrl = "https://images.unsplash.com/photo-1504669887875-b8ba0ba7e294?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YmVlZiUyMHN0ZXd8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     ),
                     MenuItem(
@@ -373,7 +370,7 @@ val sampleRestaurants = listOf(
                         name = "Imam Baildi",
                         description = "Stuffed eggplant with tomato sauce and herbs",
                         price = 10.00,
-                        imageUrl = "https://images.unsplash.com/photo-1625944230945-1b7dd3b949ab?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8c3R1ZmZlZCUyMGVnZ3BsYW50fGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -381,7 +378,7 @@ val sampleRestaurants = listOf(
                         name = "Chicken Souvlaki Plate",
                         description = "Grilled chicken skewers with pita, salad and tzatziki",
                         price = 11.50,
-                        imageUrl = "https://images.unsplash.com/photo-1561626423-3509f6e86c13?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c291dmxha2l8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = false
                     )
                 )
@@ -396,7 +393,7 @@ val sampleRestaurants = listOf(
                         name = "Greek Coffee",
                         description = "Traditional Greek coffee served in a small cup",
                         price = 2.50,
-                        imageUrl = "https://images.unsplash.com/photo-1550681560-af9bc1cb339e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z3JlZWslMjBjb2ZmZWV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -404,7 +401,7 @@ val sampleRestaurants = listOf(
                         name = "House Wine (500ml)",
                         description = "Local house wine, red or white",
                         price = 8.00,
-                        imageUrl = "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8d2luZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     ),
                     MenuItem(
@@ -412,7 +409,7 @@ val sampleRestaurants = listOf(
                         name = "Ouzo",
                         description = "Traditional Greek anise-flavored spirit",
                         price = 3.50,
-                        imageUrl = "https://images.unsplash.com/photo-1607622750671-6cd9a99eabd1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b3V6b3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+                        imageUrl = null,
                         isVegetarian = true
                     )
                 )

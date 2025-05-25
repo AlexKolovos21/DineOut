@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Search
@@ -119,74 +120,81 @@ fun RestaurantCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
-        shape = RoundedCornerShape(16.dp),
+            .height(100.dp),
+        shape = RoundedCornerShape(12.dp),
         onClick = onClick
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (restaurant.imageUrl != null) {
-                Image(
-                    painter = rememberAsyncImagePainter(restaurant.imageUrl),
-                    contentDescription = restaurant.name,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(GreekBlue.copy(alpha = 0.2f))
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Restaurant Icon/Initial
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(GreekBlue.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = restaurant.name.take(2).uppercase(),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = GreekBlue
                 )
             }
             
-            // Gradient overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.7f)
-                            )
-                        )
-                    )
-            )
+            Spacer(modifier = Modifier.width(12.dp))
             
-            // Restaurant info
+            // Restaurant Info
             Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(16.dp)
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = restaurant.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = restaurant.cuisine,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row(
-                    modifier = Modifier.padding(top = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 2.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_star),
                         contentDescription = stringResource(R.string.rating),
                         tint = Color.Yellow,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                     Text(
                         text = String.format("%.1f", restaurant.rating),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White,
-                        modifier = Modifier.padding(start = 4.dp)
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 2.dp)
                     )
+                    if (restaurant.isOpen) {
+                        Text(
+                            text = "• Open",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Green,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
                 }
+            }
+            
+            // Favorite Icon
+            if (isFavorite) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = stringResource(R.string.favorite),
+                    tint = Color.Red,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

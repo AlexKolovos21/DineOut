@@ -50,6 +50,7 @@ import kotlin.random.Random
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material3.HorizontalDivider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -250,17 +251,19 @@ fun CartItemCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(item.imageUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = item.name,
-                contentScale = ContentScale.Crop,
+            Box(
                 modifier = Modifier
                     .size(80.dp)
                     .padding(end = 16.dp)
-            )
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = item.name.take(2).uppercase(),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             
             Column(
                 modifier = Modifier
@@ -573,7 +576,7 @@ fun OrderSummarySection(
                 )
             }
             
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(vertical = 8.dp),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
             )
@@ -651,26 +654,6 @@ fun OrderConfirmationScreen(
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Generate QR code for order
-        val qrCodeBitmap = QRCodeGenerator.generateQRCode(order.id)
-        qrCodeBitmap?.let {
-            Image(
-                bitmap = it.asImageBitmap(),
-                contentDescription = stringResource(R.string.order_qr_code),
-                modifier = Modifier.size(200.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = stringResource(R.string.scan_to_track),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-        }
         
         Spacer(modifier = Modifier.height(24.dp))
         

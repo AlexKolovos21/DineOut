@@ -138,12 +138,22 @@ class MainActivity : ComponentActivity() {
                                 onUpdateQuantity = updateCart
                             )
                         }
+                        composable("order_detail/{orderId}") { backStackEntry ->
+                            val orderId = backStackEntry.arguments?.getString("orderId")
+                            val order = orderHistory.find { it.id == orderId }
+                            order?.let {
+                                OrderDetailScreen(
+                                    order = it,
+                                    onBackClick = { navController.popBackStack() }
+                                )
+                            }
+                        }
                         composable("history") {
                             HistoryScreen(
                                 orders = orderHistory,
                                 onBackClick = { navController.popBackStack() },
                                 onOrderClick = { order ->
-                                    // Could navigate to order details in future
+                                    navController.navigate("order_detail/${order.id}")
                                 }
                             )
                         }

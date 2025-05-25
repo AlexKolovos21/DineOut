@@ -447,24 +447,7 @@ fun MapScreen(
                         Column(
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            // Add restaurant image
-                            restaurant.imageUrl?.let { imageUrl ->
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(imageUrl)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = restaurant.name,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(160.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                )
-                                
-                                Spacer(modifier = Modifier.height(12.dp))
-                            }
-                            
+                            // Removed restaurant image
                             Text(
                                 text = restaurant.name,
                                 style = MaterialTheme.typography.titleLarge

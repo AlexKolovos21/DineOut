@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
@@ -50,7 +50,10 @@ fun RestaurantDetailScreen(
                 title = { Text(restaurant.name) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 actions = {
@@ -133,71 +136,31 @@ fun RestaurantHeader(restaurant: Restaurant) {
             .fillMaxWidth()
             .height(200.dp)
     ) {
-        if (restaurant.imageUrl != null) {
-            AsyncImage(
-                model = restaurant.imageUrl,
-                contentDescription = restaurant.name,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(GreekBlue.copy(alpha = 0.2f))
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = restaurant.name,
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White
             )
-            
-            // Gradient overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.7f)
-                            )
-                        )
-                    )
+            Text(
+                text = restaurant.cuisine,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.8f)
             )
-            
-            // Restaurant info overlay
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = restaurant.name,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White
-                )
-                Text(
-                    text = restaurant.cuisine,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.8f)
-                )
-                Text(
-                    text = "★ ${restaurant.rating}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.Yellow
-                )
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = restaurant.name,
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Text(
-                    text = restaurant.cuisine,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "★ ${restaurant.rating}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            Text(
+                text = "★ ${restaurant.rating}",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Yellow
+            )
         }
     }
 }
