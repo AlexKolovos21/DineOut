@@ -33,7 +33,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     buildFeatures {
         compose true
@@ -75,6 +75,7 @@ dependencies {
     implementation 'com.google.zxing:core:3.5.2'
     implementation libs.androidx.appcompat
     implementation libs.androidx.constraintlayout
+    implementation libs.core.ktx
 
     // Testing
     testImplementation 'junit:junit:4.13.2'
