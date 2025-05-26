@@ -55,7 +55,7 @@ fun MapScreen(
     onRestaurantClick: (Restaurant) -> Unit,
     favoriteRestaurants: Set<String>
 ) {
-    val athens = LatLng(37.9838, 23.7275) // Athens coordinates
+    val athens = LatLng(37.9838, 23.7275) // Συντεταγμένες Αθήνας
     var selectedRestaurant by remember { mutableStateOf<Restaurant?>(null) }
     var showFilters by remember { mutableStateOf(false) }
     var selectedCuisine by remember { mutableStateOf<String?>(null) }
@@ -67,12 +67,11 @@ fun MapScreen(
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     
-    // Check Google Play Services availability
     val isGooglePlayServicesAvailable = remember {
         val result = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
         if (result != ConnectionResult.SUCCESS) {
             Log.e("MapScreen", "Google Play Services not available: ${GoogleApiAvailability.getInstance().getErrorString(result)}")
-            mapError = "Google Play Services error: ${GoogleApiAvailability.getInstance().getErrorString(result)}"
+            mapError = "Σφάλμα Google Play Services: ${GoogleApiAvailability.getInstance().getErrorString(result)}"
             false
         } else {
             Log.d("MapScreen", "Google Play Services is available")
@@ -80,34 +79,28 @@ fun MapScreen(
         }
     }
     
-    // Log that we're attempting to create the map
     LaunchedEffect(Unit) {
         Log.d("MapScreen", "Initializing map with API key from manifest")
-        // Display toast message to help debug
-        Toast.makeText(context, "Attempting to load Google Map...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Φόρτωση χάρτη...", Toast.LENGTH_SHORT).show()
     }
     
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(athens, 12f)
     }
     
-    // Log camera position changes
     LaunchedEffect(cameraPositionState.position) {
         Log.d("MapScreen", "Camera position updated: ${cameraPositionState.position}")
     }
     
-    // Add a timeout to ensure map loading doesn't get stuck
     LaunchedEffect(key1 = Unit) {
-        // Force map to be considered loaded after 5 seconds to prevent infinite loading
         kotlinx.coroutines.delay(5000)
         if (!isMapLoaded) {
             Log.w("MapScreen", "Map load timeout triggered - forcing isMapLoaded=true")
             isMapLoaded = true
-            mapError = "Map may not have loaded correctly. Timeout reached."
+            mapError = "Ο χάρτης μπορεί να μην φορτώθηκε σωστά. Έληξε ο χρόνος αναμονής."
         }
     }
     
-    // Get user's location
     LaunchedEffect(Unit) {
         try {
             Log.d("MapScreen", "Attempting to get user location")
@@ -138,29 +131,28 @@ fun MapScreen(
                                 }
                             } ?: run {
                                 Log.e("MapScreen", "Location is null")
-                                mapError = "Couldn't get your location"
+                                mapError = "Δεν μπορέσαμε να βρούμε την τοποθεσία σου"
                             }
                         }.addOnFailureListener { exception ->
                             Log.e("MapScreen", "Failed to get location", exception)
-                            mapError = "Error getting location: ${exception.localizedMessage}"
+                            mapError = "Σφάλμα κατά την εύρεση της τοποθεσίας σου"
                         }
                     } catch (e: Exception) {
                         Log.e("MapScreen", "Exception in location retrieval", e)
-                        mapError = "Location exception: ${e.localizedMessage}"
+                        mapError = "Σφάλμα τοποθεσίας: ${e.localizedMessage}"
                     }
                 }
             } else {
                 Log.w("MapScreen", "Location permission not granted")
-                mapError = "Location permission not granted"
+                mapError = "Δεν δόθηκε άδεια πρόσβασης στην τοποθεσία"
             }
         } catch (e: Exception) {
             Log.e("MapScreen", "Exception in location code", e)
-            mapError = "General error: ${e.localizedMessage}"
+            mapError = "Γενικό σφάλμα: ${e.localizedMessage}"
             e.printStackTrace()
         }
     }
     
-    // Function to calculate distance between two coordinates
     fun calculateDistance(start: LatLng, end: LatLng): Float {
         val results = FloatArray(1)
         Location.distanceBetween(
@@ -168,16 +160,15 @@ fun MapScreen(
             end.latitude, end.longitude,
             results
         )
-        return results[0] / 1000 // Convert to kilometers
+        return results[0] / 1000 // Μετατροπή σε χιλιόμετρα
     }
     
-    // Points of interest data
     val pointsOfInterest = listOf(
-        Triple("Acropolis", LatLng(37.9715, 23.7269), BitmapDescriptorFactory.HUE_YELLOW),
-        Triple("Syntagma Square", LatLng(37.9750, 23.7354), BitmapDescriptorFactory.HUE_YELLOW),
-        Triple("National Garden", LatLng(37.9732, 23.7378), BitmapDescriptorFactory.HUE_GREEN),
-        Triple("Temple of Olympian Zeus", LatLng(37.9694, 23.7331), BitmapDescriptorFactory.HUE_YELLOW),
-        Triple("National Archaeological Museum", LatLng(37.9893, 23.7320), BitmapDescriptorFactory.HUE_MAGENTA)
+        Triple("Ακρόπολη", LatLng(37.9715, 23.7269), BitmapDescriptorFactory.HUE_YELLOW),
+        Triple("Σύνταγμα", LatLng(37.9750, 23.7354), BitmapDescriptorFactory.HUE_YELLOW),
+        Triple("Εθνικός Κήπος", LatLng(37.9732, 23.7378), BitmapDescriptorFactory.HUE_GREEN),
+        Triple("Ναός του Ολυμπίου Διός", LatLng(37.9694, 23.7331), BitmapDescriptorFactory.HUE_YELLOW),
+        Triple("Εθνικό Αρχαιολογικό Μουσείο", LatLng(37.9893, 23.7320), BitmapDescriptorFactory.HUE_MAGENTA)
     )
     
     Scaffold(
@@ -194,14 +185,13 @@ fun MapScreen(
                     }
                 },
                 actions = {
-                    // Map type toggle
                     IconButton(onClick = { 
                         mapType = if (mapType == MapType.NORMAL) MapType.SATELLITE else MapType.NORMAL
                         Log.d("MapScreen", "Map type changed to: $mapType")
                     }) {
                         Icon(
                             imageVector = Icons.Default.FilterList,
-                            contentDescription = "Toggle Map Type",
+                            contentDescription = "Εναλλαγή τύπου χάρτη",
                             tint = GreekWhite
                         )
                     }
@@ -223,7 +213,7 @@ fun MapScreen(
                             Log.d("MapScreen", "Moving camera to user location")
                         } ?: run {
                             Log.w("MapScreen", "User location is null, can't move camera")
-                            Toast.makeText(context, "User location not available", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Η τοποθεσία σου δεν είναι διαθέσιμη", Toast.LENGTH_SHORT).show()
                         }
                     }) {
                         Icon(
@@ -241,7 +231,6 @@ fun MapScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // Replace try-catch with safe composable approach
                 if (!isMapLoaded) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -255,13 +244,12 @@ fun MapScreen(
                                 color = GreekBlue
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Loading map...")
+                            Text("Φόρτωση χάρτη...")
                         }
                     }
                 }
                 
                 if (isGooglePlayServicesAvailable) {
-                    // Log that we're rendering the GoogleMap
                     Log.d("MapScreen", "Attempting to render GoogleMap composable")
                     
                     GoogleMap(
@@ -283,16 +271,13 @@ fun MapScreen(
                         onMapLoaded = {
                             Log.d("MapScreen", "Map has loaded successfully")
                             isMapLoaded = true
-                            mapError = null // Clear any error if map loaded successfully
-                            Toast.makeText(context, "Map loaded successfully", Toast.LENGTH_SHORT).show()
+                            mapError = null
+                            Toast.makeText(context, "Ο χάρτης φορτώθηκε επιτυχώς", Toast.LENGTH_SHORT).show()
                         }
                     ) {
-                        // Always show markers regardless of loading state
-                        // Add restaurant markers
                         sampleRestaurants
                             .filter { selectedCuisine == null || it.cuisine == selectedCuisine }
                             .forEach { restaurant ->
-                                // Choose marker color based on cuisine
                                 val markerColor = when (restaurant.cuisine) {
                                     "Greek" -> BitmapDescriptorFactory.HUE_AZURE
                                     "Italian" -> BitmapDescriptorFactory.HUE_RED
@@ -300,12 +285,10 @@ fun MapScreen(
                                     else -> BitmapDescriptorFactory.HUE_ORANGE
                                 }
                                 
-                                // Calculate distance from user if location is available
                                 val distance = userLocation?.let { 
                                     calculateDistance(it, restaurant.location)
                                 }
                                 
-                                // Create title with distance info if available
                                 val title = if (distance != null) {
                                     "${restaurant.name} (${String.format("%.1f", distance)} km)"
                                 } else {
@@ -324,30 +307,27 @@ fun MapScreen(
                                 )
                             }
                         
-                        // Add user location marker if available
                         userLocation?.let {
                             Marker(
                                 state = MarkerState(position = it),
-                                title = "Your Location",
+                                title = "Η τοποθεσία σου",
                                 icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
                             )
                             
-                            // Add a circle to show approximate location radius
                             Circle(
                                 center = it,
-                                radius = 300.0, // 300 meters radius
+                                radius = 300.0,
                                 fillColor = Color(0x220000FF),
                                 strokeColor = Color(0x660000FF),
                                 strokeWidth = 2f
                             )
                         }
                         
-                        // Add points of interest
                         pointsOfInterest.forEach { (name, position, colorHue) ->
                             Marker(
                                 state = MarkerState(position = position),
                                 title = name,
-                                snippet = "Point of Interest",
+                                snippet = "Σημείο ενδιαφέροντος",
                                 icon = BitmapDescriptorFactory.defaultMarker(colorHue),
                                 alpha = 0.8f
                             )
@@ -355,7 +335,6 @@ fun MapScreen(
                     }
                 }
                 
-                // Display error message if map fails to load
                 if (isMapLoaded && mapError != null) {
                     Box(
                         modifier = Modifier
@@ -372,18 +351,18 @@ fun MapScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "Map Error",
+                                    text = "Σφάλμα Χάρτη",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = mapError ?: "Unknown error",
+                                    text = mapError ?: "Άγνωστο σφάλμα",
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "Suggestions: Check internet connection, API key, and Google Play Services.",
+                                    text = "Προτάσεις: Ελέγξτε τη σύνδεση στο διαδίκτυο, το API key και τα Google Play Services.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
                                 )
@@ -392,7 +371,6 @@ fun MapScreen(
                     }
                 }
                 
-                // Add a helper message if Google Play Services not available
                 if (!isGooglePlayServicesAvailable) {
                     Box(
                         modifier = Modifier
@@ -411,13 +389,13 @@ fun MapScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "Google Play Services Required",
+                                    text = "Απαιτούνται Google Play Services",
                                     style = MaterialTheme.typography.titleLarge,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "This app requires Google Play Services to display maps. Please install or update Google Play Services and try again.",
+                                    text = "Αυτή η εφαρμογή απαιτεί Google Play Services για την εμφάνιση χαρτών. Παρακαλώ εγκαταστήστε ή ενημερώστε τα Google Play Services και δοκιμάστε ξανά.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -426,7 +404,7 @@ fun MapScreen(
                                 Button(
                                     onClick = { onBackClick() }
                                 ) {
-                                    Text("Go Back")
+                                    Text("Επιστροφή")
                                 }
                             }
                         }
@@ -434,7 +412,6 @@ fun MapScreen(
                 }
             }
 
-            // Restaurant info card
             if (isMapLoaded && selectedRestaurant != null) {
                 selectedRestaurant?.let { restaurant ->
                     Card(
@@ -447,7 +424,6 @@ fun MapScreen(
                         Column(
                             modifier = Modifier.padding(16.dp)
                         ) {
-                            // Removed restaurant image
                             Text(
                                 text = restaurant.name,
                                 style = MaterialTheme.typography.titleLarge
@@ -461,11 +437,10 @@ fun MapScreen(
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             
-                            // Display distance if available
                             userLocation?.let { userLoc ->
                                 val distance = calculateDistance(userLoc, restaurant.location)
                                 Text(
-                                    text = "Distance: ${String.format("%.1f", distance)} km",
+                                    text = "Απόσταση: ${String.format("%.1f", distance)} km",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             }
@@ -478,7 +453,6 @@ fun MapScreen(
                                 )
                             }
                             
-                            // Display restaurant address
                             Text(
                                 text = restaurant.address,
                                 style = MaterialTheme.typography.bodySmall,
@@ -498,7 +472,6 @@ fun MapScreen(
             }
         }
         
-        // Filters dialog
         if (showFilters) {
             AlertDialog(
                 onDismissRequest = { showFilters = false },
@@ -508,9 +481,9 @@ fun MapScreen(
                         Text(stringResource(R.string.select_cuisine))
                         Spacer(modifier = Modifier.height(8.dp))
                         listOf(
-                            "Greek",
-                            "Italian", 
-                            "Japanese"
+                            "Ελληνική",
+                            "Ιταλική", 
+                            "Ιαπωνική"
                         ).forEach { cuisine ->
                             Row(
                                 modifier = Modifier

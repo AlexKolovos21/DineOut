@@ -1,65 +1,68 @@
 package com.example.dineout.ui.screens
 
-import android.widget.Toast
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Location
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import com.example.dineout.R
 import com.example.dineout.data.MenuItem
 import com.example.dineout.data.Order
 import com.example.dineout.data.Restaurant
-import com.example.dineout.utils.QRCodeGenerator
-import androidx.compose.foundation.Image
-import androidx.activity.compose.BackHandler
-import java.util.UUID
-import androidx.compose.ui.graphics.toArgb
-import android.graphics.Bitmap
-import android.graphics.Color as AndroidColor
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.dineout.ui.theme.GreekBlue
-import kotlin.random.Random
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationToken
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.android.gms.tasks.OnTokenCanceledListener
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.animation.core.tween
+import java.util.*
+import android.graphics.Bitmap
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.common.BitMatrix
+import com.google.zxing.qrcode.QRCodeWriter
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalDensity
+import android.graphics.Color as AndroidColor
+import android.location.Geocoder
+import android.os.Build
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,12 +78,10 @@ fun CartScreen(
     var deliveryAddress by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("Credit Card") }
     
-    // Calculate total price
     val total = cartItems.entries.sumOf { (item, quantity) -> item.price * quantity }
     
-    // Apply BackHandler to prevent back navigation during order confirmation
     BackHandler(enabled = orderPlaced) {
-        // Do nothing, effectively blocking back navigation when order is confirmed
+        // Block back navigation when order is confirmed
     }
     
     Scaffold(
@@ -121,18 +122,16 @@ fun CartScreen(
                 modifier = Modifier.padding(padding)
             )
         } else if (cartItems.isEmpty()) {
-            // Empty cart state
             EmptyCartView(
                 onBackClick = onBackClick,
                 modifier = Modifier.padding(padding)
             )
         } else {
-            // Normal cart view with items
             CartContent(
                 restaurant = restaurant,
                 cartItems = cartItems,
                 total = total,
-                deliveryAddress = deliveryAddress, 
+                deliveryAddress = deliveryAddress,
                 onDeliveryAddressChange = { deliveryAddress = it },
                 paymentMethod = paymentMethod,
                 onPaymentMethodChange = { paymentMethod = it },
@@ -142,7 +141,7 @@ fun CartScreen(
                         id = UUID.randomUUID().toString(),
                         restaurantId = restaurant?.id ?: "",
                         restaurantName = restaurant?.name ?: "",
-                        items = cartItems.map { (item, quantity) -> item to quantity }.toMap(),
+                        items = cartItems,
                         total = total,
                         date = System.currentTimeMillis(),
                         status = "Confirmed",
@@ -235,95 +234,161 @@ fun CartContent(
         
         item {
             OrderSummarySection(
-                cartItems = cartItems,
                 total = total,
-                onCheckout = onCheckout,
-                deliveryAddress = deliveryAddress,
-                paymentMethod = paymentMethod
+                onCheckout = onCheckout
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartItemCard(
     item: MenuItem,
     quantity: Int,
     onUpdateQuantity: (MenuItem, Int) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .padding(end = 16.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = item.name.take(2).uppercase(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-            ) {
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "€${item.price}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = { onUpdateQuantity(item, quantity - 1) },
-                    enabled = quantity > 0
-                ) {
-                    if (quantity > 1) {
-                        Icon(
-                            imageVector = Icons.Default.Remove,
-                            contentDescription = stringResource(R.string.decrease_quantity)
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.remove_item)
-                        )
-                    }
-                }
-                
-                Text(
-                    text = quantity.toString(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-                
-                IconButton(onClick = { onUpdateQuantity(item, quantity + 1) }) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.increase_quantity)
-                    )
-                }
+    var isRemoving by remember { mutableStateOf(false) }
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                isRemoving = true
+                true
+            } else {
+                false
             }
         }
+    )
+    
+    LaunchedEffect(isRemoving) {
+        if (isRemoving) {
+            onUpdateQuantity(item, 0)
+        }
+    }
+
+    AnimatedVisibility(
+        visible = !isRemoving,
+        exit = slideOutHorizontally(
+            targetOffsetX = { -it },
+            animationSpec = tween(durationMillis = 300)
+        ) + fadeOut()
+    ) {
+        SwipeToDismissBox(
+            state = dismissState,
+            backgroundContent = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.error)
+                        .padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.White
+                    )
+                }
+            },
+            content = {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .animateContentSize(),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val infiniteTransition = rememberInfiniteTransition(label = "imageScale")
+                        val scale by infiniteTransition.animateFloat(
+                            initialValue = 1f,
+                            targetValue = 1.05f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "scale"
+                        )
+                        
+                        AsyncImage(
+                            model = item.imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .scale(scale),
+                            contentScale = ContentScale.Crop
+                        )
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+                        
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = item.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "€${String.format("%.2f", item.price)}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            IconButton(
+                                onClick = { if (quantity > 1) onUpdateQuantity(item, quantity - 1) },
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        shape = CircleShape
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Remove,
+                                    contentDescription = "Decrease quantity",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            
+                            Text(
+                                text = quantity.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.animateContentSize()
+                            )
+                            
+                            IconButton(
+                                onClick = { onUpdateQuantity(item, quantity + 1) },
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
+                                    )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Increase quantity",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -361,7 +426,6 @@ fun DeliveryInfoSection(
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        // Payment methods
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -371,7 +435,7 @@ fun DeliveryInfoSection(
                 onClick = { onPaymentMethodChange("Cash") }
             )
             Text(
-                text = "Cash on Delivery",
+                text = "Μετρητά κατά την παράδοση",
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
@@ -385,7 +449,7 @@ fun DeliveryInfoSection(
                 onClick = { onPaymentMethodChange("Card") }
             )
             Text(
-                text = "Credit/Debit Card",
+                text = "Πιστωτική/Χρεωστική Κάρτα",
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
@@ -398,13 +462,28 @@ fun DeliveryAddressFinder(
     onAddressChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isLocationLoading by remember { mutableStateOf(false) }
+    var showLocationError by remember { mutableStateOf(false) }
+    
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            getCurrentLocation(context, onAddressChange, scope)
+        } else {
+            showLocationError = true
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
         Text(
-            text = "Find your address",
+            text = "Βρείτε τη διεύθυνσή σας",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary
         )
@@ -415,15 +494,15 @@ fun DeliveryAddressFinder(
             value = address,
             onValueChange = onAddressChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Search for your address") },
-            placeholder = { Text("Enter street, number, city") },
+            label = { Text("Αναζητήστε τη διεύθυνσή σας") },
+            placeholder = { Text("Εισάγετε οδό, αριθμό, πόλη") },
             trailingIcon = {
                 IconButton(onClick = {
-                    // This would trigger address lookup in real implementation
+                    // Αυτό θα ενεργοποιούσε την αναζήτηση διεύθυνσης στην πραγματική υλοποίηση
                 }) {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Find address"
+                        contentDescription = "Εύρεση διεύθυνσης"
                     )
                 }
             }
@@ -431,10 +510,19 @@ fun DeliveryAddressFinder(
         
         Spacer(modifier = Modifier.height(12.dp))
         
-        // Add a find my location button
         Button(
             onClick = {
-                // This would trigger location permission and retrieval in real implementation
+                when {
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED -> {
+                        getCurrentLocation(context, onAddressChange, scope)
+                    }
+                    else -> {
+                        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
@@ -442,101 +530,126 @@ fun DeliveryAddressFinder(
                 contentColor = Color.White
             )
         ) {
-            Icon(
-                imageVector = Icons.Default.MyLocation,
-                contentDescription = "Use my current location",
-                modifier = Modifier.size(18.dp)
-            )
+            if (isLocationLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.MyLocation,
+                    contentDescription = "Χρήση τρέχουσας τοποθεσίας",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Use my current location")
+            Text("Χρήση τρέχουσας τοποθεσίας")
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Sample suggested addresses
-        Text(
-            text = "Suggested addresses",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
-        )
-        
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clickable { onAddressChange("28 Ermou St, Athens 10563") },
-            shape = RoundedCornerShape(8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        AnimatedVisibility(
+            visible = showLocationError,
+            enter = fadeIn() + slideInVertically(),
+            exit = fadeOut() + slideOutVertically()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = "28 Ermou St",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Athens 10563",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
+            Text(
+                text = "Απαιτείται άδεια πρόσβασης στην τοποθεσία για να χρησιμοποιήσετε αυτή τη λειτουργία",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
-        
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clickable { onAddressChange("15 Adrianou St, Athens 10555") },
-            shape = RoundedCornerShape(8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = "15 Adrianou St",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Athens 10555",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+    }
+}
+
+fun getCurrentLocation(
+    context: android.content.Context,
+    onAddressChange: (String) -> Unit,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    val geocoder = Geocoder(context, Locale.getDefault())
+    
+    scope.launch {
+        try {
+            val locationRequest = Priority.PRIORITY_HIGH_ACCURACY
+            val cancellationTokenSource = CancellationTokenSource()
+            
+            val location = fusedLocationClient.getCurrentLocation(
+                locationRequest,
+                cancellationTokenSource.token
+            ).await()
+            
+            location?.let { loc ->
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        geocoder.getFromLocation(loc.latitude, loc.longitude, 1) { addresses ->
+                            if (!addresses.isNullOrEmpty()) {
+                                val address = addresses[0]
+                                val addressLines = mutableListOf<String>()
+                                
+                                // Προσθήκη διεύθυνσης οδού αν είναι διαθέσιμη
+                                address.thoroughfare?.let { addressLines.add(it) }
+                                address.subThoroughfare?.let { addressLines.add(it) }
+                                
+                                // Προσθήκη πόλης αν είναι διαθέσιμη
+                                address.locality?.let { addressLines.add(it) }
+                                
+                                // Προσθήκη ταχυδρομικού κώδικα αν είναι διαθέσιμος
+                                address.postalCode?.let { addressLines.add(it) }
+                                
+                                // Προσθήκη χώρας αν είναι διαθέσιμη
+                                address.countryName?.let { addressLines.add(it) }
+                                
+                                val formattedAddress = addressLines.joinToString(", ")
+                                onAddressChange(formattedAddress)
+                            } else {
+                                // Επιστροφή στις συντεταγμένες αν δεν βρέθηκε διεύθυνση
+                                onAddressChange("Τρέχουσα Τοποθεσία: ${loc.latitude}, ${loc.longitude}")
+                            }
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
+                        if (!addresses.isNullOrEmpty()) {
+                            val address = addresses[0]
+                            val addressLines = mutableListOf<String>()
+                            
+                            // Προσθήκη διεύθυνσης οδού αν είναι διαθέσιμη
+                            address.thoroughfare?.let { addressLines.add(it) }
+                            address.subThoroughfare?.let { addressLines.add(it) }
+                            
+                            // Προσθήκη πόλης αν είναι διαθέσιμη
+                            address.locality?.let { addressLines.add(it) }
+                            
+                            // Προσθήκη ταχυδρομικού κώδικα αν είναι διαθέσιμος
+                            address.postalCode?.let { addressLines.add(it) }
+                            
+                            // Προσθήκη χώρας αν είναι διαθέσιμη
+                            address.countryName?.let { addressLines.add(it) }
+                            
+                            val formattedAddress = addressLines.joinToString(", ")
+                            onAddressChange(formattedAddress)
+                        } else {
+                            // Επιστροφή στις συντεταγμένες αν δεν βρέθηκε διεύθυνση
+                            onAddressChange("Τρέχουσα Τοποθεσία: ${loc.latitude}, ${loc.longitude}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Επιστροφή στις συντεταγμένες αν αποτύχει η γεωκωδικοποίηση
+                    onAddressChange("Τρέχουσα Τοποθεσία: ${loc.latitude}, ${loc.longitude}")
                 }
             }
+        } catch (e: Exception) {
+            // Χειρισμός σφάλματος
         }
     }
 }
 
 @Composable
 fun OrderSummarySection(
-    cartItems: Map<MenuItem, Int>,
     total: Double,
-    onCheckout: () -> Unit,
-    deliveryAddress: String,
-    paymentMethod: String
+    onCheckout: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -563,7 +676,7 @@ fun OrderSummarySection(
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = "€${total.toFixed(2)}",
+                    text = "€${String.format("%.2f", total)}",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -602,21 +715,55 @@ fun OrderSummarySection(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "€${(total + 3.99).toFixed(2)}",
+                    text = "€${String.format("%.2f", total + 3.99)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
             
-            Button(
-                onClick = onCheckout,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = deliveryAddress.isNotBlank() && cartItems.isNotEmpty()
-            ) {
-                Text(text = stringResource(R.string.place_order))
-            }
+            CheckoutButton(
+                total = total,
+                onCheckout = onCheckout,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
+    }
+}
+
+@Composable
+fun CheckoutButton(
+    total: Double,
+    onCheckout: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "scale"
+    )
+    
+    Button(
+        onClick = onCheckout,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .scale(scale),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = GreekBlue,
+            contentColor = Color.White
+        ),
+        shape = RoundedCornerShape(28.dp)
+    ) {
+        Text(
+            text = "Έλεγχος - €${String.format("%.2f", total)}",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -626,11 +773,59 @@ fun OrderConfirmationScreen(
     onMainMenuClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val qrCodeBitmap = remember(order.id) {
-        QRCodeGenerator.generateQRCode(order.id, 256)
+    var visible by remember { mutableStateOf(false) }
+    
+    // QR Code generation
+    val qrCodeBitmap = remember {
+        val writer = QRCodeWriter()
+        val bitMatrix: BitMatrix = writer.encode(
+            "Order ID: ${order.id}\nRestaurant: ${order.restaurantName}\nTotal: €${String.format("%.2f", order.total)}",
+            BarcodeFormat.QR_CODE,
+            512,
+            512
+        )
+        val width = bitMatrix.width
+        val height = bitMatrix.height
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                bitmap.setPixel(x, y, if (bitMatrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE)
+            }
+        }
+        bitmap
     }
     
-    var visible by remember { mutableStateOf(false) }
+    // Animations
+    val infiniteTransition = rememberInfiniteTransition(label = "infinite")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation"
+    )
+    
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+    
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
     
     LaunchedEffect(Unit) {
         visible = true
@@ -644,7 +839,7 @@ fun OrderConfirmationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Success Icon with animation
+        // Success Icon with rotation animation
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -655,7 +850,10 @@ fun OrderConfirmationScreen(
             Card(
                 modifier = Modifier
                     .size(120.dp)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .rotate(rotation)
+                    .scale(scale)
+                    .alpha(alpha),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -674,7 +872,7 @@ fun OrderConfirmationScreen(
             }
         }
         
-        // Thank You Message with animation
+        // Thank you message
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -686,11 +884,12 @@ fun OrderConfirmationScreen(
                 text = stringResource(R.string.thank_you_for_your_order),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.scale(scale)
             )
         }
         
-        // QR Code Section with animation
+        // Order details card
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -701,7 +900,8 @@ fun OrderConfirmationScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .scale(scale),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -711,53 +911,6 @@ fun OrderConfirmationScreen(
                         .fillMaxWidth()
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = stringResource(R.string.order_qr_code),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    androidx.compose.foundation.Image(
-                        bitmap = qrCodeBitmap.asImageBitmap(),
-                        contentDescription = "QR Code",
-                        modifier = Modifier.size(200.dp)
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Text(
-                        text = stringResource(R.string.scan_to_track),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
-        
-        // Order Details with animation
-        AnimatedVisibility(
-            visible = visible,
-            enter = slideInVertically(
-                initialOffsetY = { it },
-                animationSpec = tween(500, delayMillis = 600)
-            ) + fadeIn(animationSpec = tween(500, delayMillis = 600))
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.order_id_format, order.id.take(8)),
@@ -775,24 +928,45 @@ fun OrderConfirmationScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Restaurant: ${order.restaurantName}",
+                        text = "Εστιατόριο: ${order.restaurantName}",
                         style = MaterialTheme.typography.bodyLarge
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Total: €${String.format("%.2f", order.total)}",
+                        text = "Σύνολο: €${String.format("%.2f", order.total)}",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // QR Code
+                    Card(
+                        modifier = Modifier
+                            .size(200.dp)
+                            .padding(8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        )
+                    ) {
+                        Image(
+                            bitmap = qrCodeBitmap.asImageBitmap(),
+                            contentDescription = "QR Κώδικας Παραγγελίας",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp)
+                                .scale(scale)
+                        )
+                    }
                 }
             }
         }
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Return to Main Menu Button with animation
+        // Return to main menu button
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -804,7 +978,8 @@ fun OrderConfirmationScreen(
                 onClick = onMainMenuClick,
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .height(56.dp),
+                    .height(56.dp)
+                    .scale(scale),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
@@ -818,14 +993,8 @@ fun OrderConfirmationScreen(
     }
 }
 
-// Update the price formatter to use Euro format
-private fun Double.toFixed(decimals: Int): String {
-    return "€%.${decimals}f".format(this)
-}
-
-// Helper function to format date
 private fun formatDate(timestamp: Long): String {
-    val date = java.util.Date(timestamp)
-    val formatter = java.text.SimpleDateFormat("dd MMMM yyyy, HH:mm", java.util.Locale.getDefault())
+    val date = Date(timestamp)
+    val formatter = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault())
     return formatter.format(date)
 }

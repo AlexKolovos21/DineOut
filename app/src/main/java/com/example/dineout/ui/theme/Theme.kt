@@ -54,8 +54,7 @@ private val LightColorScheme = lightColorScheme(
     inverseSurface = Color(0xFF313033),
     inverseOnSurface = Color(0xFFF4EFF4),
     inversePrimary = GreekBlue.copy(alpha = 0.8f),
-    surfaceTint = GreekBlue,
-    surfaceTintColor = GreekBlue
+    surfaceTint = GreekBlue
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -87,8 +86,7 @@ private val DarkColorScheme = darkColorScheme(
     inverseSurface = Color(0xFFE6E1E5),
     inverseOnSurface = Color(0xFF313033),
     inversePrimary = GreekBlue.copy(alpha = 0.8f),
-    surfaceTint = GreekBlue,
-    surfaceTintColor = GreekBlue
+    surfaceTint = GreekBlue
 )
 
 @Composable
