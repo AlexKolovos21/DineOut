@@ -3,7 +3,11 @@ package com.example.dineout.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
@@ -21,47 +25,70 @@ val GreekOlive = Color(0xFF7D8C38) // Olive green
 val GreekTerracotta = Color(0xFFD35400) // Greek pottery
 val GreekGold = Color(0xFFDAA520) // Byzantine gold
 
-private val DarkColorScheme = darkColorScheme(
-    primary = GreekBlue,
-    onPrimary = GreekWhite,
-    primaryContainer = GreekBlue.copy(alpha = 0.8f),
-    onPrimaryContainer = GreekWhite,
-    secondary = GreekTurquoise,
-    onSecondary = Color.Black,
-    secondaryContainer = GreekTurquoise.copy(alpha = 0.7f),
-    onSecondaryContainer = Color.Black,
-    tertiary = GreekOlive,
-    onTertiary = GreekWhite,
-    tertiaryContainer = GreekOlive.copy(alpha = 0.7f),
-    onTertiaryContainer = GreekWhite,
-    background = Color(0xFF121212),
-    onBackground = GreekWhite,
-    surface = Color(0xFF1E1E1E),
-    onSurface = GreekWhite,
-    error = GreekTerracotta,
-    onError = GreekWhite
-)
-
 private val LightColorScheme = lightColorScheme(
     primary = GreekBlue,
-    onPrimary = GreekWhite,
-    primaryContainer = GreekBlue.copy(alpha = 0.1f),
+    onPrimary = Color.White,
+    primaryContainer = GreekBlue.copy(alpha = 0.12f),
     onPrimaryContainer = GreekBlue,
-    secondary = GreekTurquoise,
+    secondary = GreekBlue.copy(alpha = 0.8f),
     onSecondary = Color.White,
-    secondaryContainer = GreekTurquoise.copy(alpha = 0.1f),
-    onSecondaryContainer = GreekTurquoise,
-    tertiary = GreekOlive,
+    secondaryContainer = GreekBlue.copy(alpha = 0.12f),
+    onSecondaryContainer = GreekBlue,
+    tertiary = GreekBlue.copy(alpha = 0.6f),
     onTertiary = Color.White,
-    tertiaryContainer = GreekOlive.copy(alpha = 0.1f),
-    onTertiaryContainer = GreekOlive,
-    background = GreekCream,
-    onBackground = Color.Black,
-    surface = GreekWhite,
-    onSurface = Color.Black,
-    error = GreekTerracotta,
+    tertiaryContainer = GreekBlue.copy(alpha = 0.12f),
+    onTertiaryContainer = GreekBlue,
+    error = Color(0xFFB3261E),
     onError = Color.White,
-    surfaceVariant = GreekCream.copy(alpha = 0.7f)
+    errorContainer = Color(0xFFF2B8B5),
+    onErrorContainer = Color(0xFF601410),
+    background = Color(0xFFFFFBFE),
+    onBackground = Color(0xFF1C1B1F),
+    surface = Color(0xFFFFFBFE),
+    onSurface = Color(0xFF1C1B1F),
+    surfaceVariant = Color(0xFFE7E0EC),
+    onSurfaceVariant = Color(0xFF49454F),
+    outline = Color(0xFF79747E),
+    outlineVariant = Color(0xFFCAC4D0),
+    scrim = Color(0xFF000000),
+    inverseSurface = Color(0xFF313033),
+    inverseOnSurface = Color(0xFFF4EFF4),
+    inversePrimary = GreekBlue.copy(alpha = 0.8f),
+    surfaceTint = GreekBlue,
+    surfaceTintColor = GreekBlue
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = GreekBlue,
+    onPrimary = Color.White,
+    primaryContainer = GreekBlue.copy(alpha = 0.12f),
+    onPrimaryContainer = GreekBlue.copy(alpha = 0.8f),
+    secondary = GreekBlue.copy(alpha = 0.8f),
+    onSecondary = Color.White,
+    secondaryContainer = GreekBlue.copy(alpha = 0.12f),
+    onSecondaryContainer = GreekBlue.copy(alpha = 0.8f),
+    tertiary = GreekBlue.copy(alpha = 0.6f),
+    onTertiary = Color.White,
+    tertiaryContainer = GreekBlue.copy(alpha = 0.12f),
+    onTertiaryContainer = GreekBlue.copy(alpha = 0.8f),
+    error = Color(0xFFF2B8B5),
+    onError = Color(0xFF601410),
+    errorContainer = Color(0xFF8C1D18),
+    onErrorContainer = Color(0xFFF2B8B5),
+    background = Color(0xFF1C1B1F),
+    onBackground = Color(0xFFE6E1E5),
+    surface = Color(0xFF1C1B1F),
+    onSurface = Color(0xFFE6E1E5),
+    surfaceVariant = Color(0xFF49454F),
+    onSurfaceVariant = Color(0xFFCAC4D0),
+    outline = Color(0xFF938F99),
+    outlineVariant = Color(0xFF49454F),
+    scrim = Color(0xFF000000),
+    inverseSurface = Color(0xFFE6E1E5),
+    inverseOnSurface = Color(0xFF313033),
+    inversePrimary = GreekBlue.copy(alpha = 0.8f),
+    surfaceTint = GreekBlue,
+    surfaceTintColor = GreekBlue
 )
 
 @Composable

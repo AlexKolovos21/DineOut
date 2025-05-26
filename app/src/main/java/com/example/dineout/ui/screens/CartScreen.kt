@@ -51,6 +51,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.animation.core.tween
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -617,51 +626,194 @@ fun OrderConfirmationScreen(
     onMainMenuClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val qrCodeBitmap = remember(order.id) {
+        QRCodeGenerator.generateQRCode(order.id, 256)
+    }
+    
+    var visible by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        visible = true
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Icon(
-            imageVector = Icons.Default.CheckCircle,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(100.dp)
-        )
+        // Success Icon with animation
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(
+                initialOffsetY = { -it },
+                animationSpec = tween(500)
+            ) + fadeIn(animationSpec = tween(500))
+        ) {
+            Card(
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(64.dp)
+                    )
+                }
+            }
+        }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        // Thank You Message with animation
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(
+                initialOffsetY = { -it },
+                animationSpec = tween(500, delayMillis = 200)
+            ) + fadeIn(animationSpec = tween(500, delayMillis = 200))
+        ) {
+            Text(
+                text = stringResource(R.string.thank_you_for_your_order),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
         
-        Text(
-            text = stringResource(R.string.thank_you_for_your_order),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
-        )
+        // QR Code Section with animation
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(500, delayMillis = 400)
+            ) + fadeIn(animationSpec = tween(500, delayMillis = 400))
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.order_qr_code),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    androidx.compose.foundation.Image(
+                        bitmap = qrCodeBitmap.asImageBitmap(),
+                        contentDescription = "QR Code",
+                        modifier = Modifier.size(200.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = stringResource(R.string.scan_to_track),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+        
+        // Order Details with animation
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(500, delayMillis = 600)
+            ) + fadeIn(animationSpec = tween(500, delayMillis = 600))
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.order_id_format, order.id.take(8)),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = stringResource(R.string.order_date, formatDate(order.date)),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Restaurant: ${order.restaurantName}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Total: €${String.format("%.2f", order.total)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        Text(
-            text = stringResource(R.string.order_id_format, order.id.take(8)),
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = stringResource(R.string.order_date, formatDate(order.date)),
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Button(
-            onClick = onMainMenuClick,
-            modifier = Modifier.fillMaxWidth(0.8f)
+        // Return to Main Menu Button with animation
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(500, delayMillis = 800)
+            ) + fadeIn(animationSpec = tween(500, delayMillis = 800))
         ) {
-            Text(text = stringResource(R.string.return_to_main_menu))
+            Button(
+                onClick = onMainMenuClick,
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.return_to_main_menu),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         }
     }
 }
