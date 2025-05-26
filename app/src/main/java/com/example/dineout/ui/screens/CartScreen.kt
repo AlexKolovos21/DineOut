@@ -285,7 +285,7 @@ fun CartItemCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        contentDescription = "Διαγραφή",
                         tint = Color.White
                     )
                 }
@@ -305,7 +305,7 @@ fun CartItemCard(
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val infiniteTransition = rememberInfiniteTransition(label = "imageScale")
+                        val infiniteTransition = rememberInfiniteTransition(label = "κλίμακα_εικόνας")
                         val scale by infiniteTransition.animateFloat(
                             initialValue = 1f,
                             targetValue = 1.05f,
@@ -313,12 +313,12 @@ fun CartItemCard(
                                 animation = tween(1000),
                                 repeatMode = RepeatMode.Reverse
                             ),
-                            label = "scale"
+                            label = "κλίμακα"
                         )
                         
                         AsyncImage(
                             model = item.imageUrl,
-                            contentDescription = null,
+                            contentDescription = "Εικόνα προϊόντος",
                             modifier = Modifier
                                 .size(60.dp)
                                 .clip(RoundedCornerShape(8.dp))
@@ -358,7 +358,7 @@ fun CartItemCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Remove,
-                                    contentDescription = "Decrease quantity",
+                                    contentDescription = "Μείωση ποσότητας",
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -380,7 +380,7 @@ fun CartItemCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = "Increase quantity",
+                                    contentDescription = "Αύξηση ποσότητας",
                                     tint = Color.White
                                 )
                             }
@@ -760,7 +760,7 @@ fun CheckoutButton(
         shape = RoundedCornerShape(28.dp)
     ) {
         Text(
-            text = "Έλεγχος - €${String.format("%.2f", total)}",
+            text = "Ολοκλήρωση - €${String.format("%.2f", total)}",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -775,11 +775,11 @@ fun OrderConfirmationScreen(
 ) {
     var visible by remember { mutableStateOf(false) }
     
-    // QR Code generation
+    // Δημιουργία QR Κώδικα
     val qrCodeBitmap = remember {
         val writer = QRCodeWriter()
         val bitMatrix: BitMatrix = writer.encode(
-            "Order ID: ${order.id}\nRestaurant: ${order.restaurantName}\nTotal: €${String.format("%.2f", order.total)}",
+            "Κωδικός Παραγγελίας: ${order.id}\nΕστιατόριο: ${order.restaurantName}\nΣύνολο: €${String.format("%.2f", order.total)}",
             BarcodeFormat.QR_CODE,
             512,
             512
@@ -795,8 +795,8 @@ fun OrderConfirmationScreen(
         bitmap
     }
     
-    // Animations
-    val infiniteTransition = rememberInfiniteTransition(label = "infinite")
+    // Κινούμενα σχέδια
+    val infiniteTransition = rememberInfiniteTransition(label = "άπειρο")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -804,7 +804,7 @@ fun OrderConfirmationScreen(
             animation = tween(20000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "rotation"
+        label = "περιστροφή"
     )
     
     val scale by infiniteTransition.animateFloat(
@@ -814,7 +814,7 @@ fun OrderConfirmationScreen(
             animation = tween(1000),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "scale"
+        label = "κλίμακα"
     )
     
     val alpha by infiniteTransition.animateFloat(
@@ -824,7 +824,7 @@ fun OrderConfirmationScreen(
             animation = tween(1000),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "alpha"
+        label = "διαφάνεια"
     )
     
     LaunchedEffect(Unit) {
@@ -839,7 +839,7 @@ fun OrderConfirmationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Success Icon with rotation animation
+        // Εικονίδιο επιτυχίας με κινούμενα σχέδια
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -864,7 +864,7 @@ fun OrderConfirmationScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
+                        contentDescription = "Επιτυχής παραγγελία",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(64.dp)
                     )
@@ -872,7 +872,7 @@ fun OrderConfirmationScreen(
             }
         }
         
-        // Thank you message
+        // Μήνυμα ευχαριστίας
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -889,7 +889,7 @@ fun OrderConfirmationScreen(
             )
         }
         
-        // Order details card
+        // Κάρτα λεπτομερειών παραγγελίας
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -942,7 +942,7 @@ fun OrderConfirmationScreen(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    // QR Code
+                    // QR Κώδικας
                     Card(
                         modifier = Modifier
                             .size(200.dp)
@@ -966,7 +966,7 @@ fun OrderConfirmationScreen(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Return to main menu button
+        // Κουμπί επιστροφής στο κεντρικό μενού
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(

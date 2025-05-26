@@ -38,7 +38,7 @@
     <string name="view_full_menu">Προβολή Πλήρους Μενού</string>
     <string name="vegetarian">Χορτοφάγος</string>
     <string name="price">Τιμή</string>
-    <string name="checkout">Έλεγχος</string>
+    <string name="checkout">Ολοκλήρωση Παραγγελίας</string>
     <string name="cart">Καλάθι</string>
     <string name="your_cart">Το Καλάθι σας</string>
     <string name="call">Κλήση</string>
@@ -56,7 +56,7 @@
     <string name="delivery_fee">Κόστος Παράδοσης</string>
     <string name="total">Σύνολο</string>
     <string name="place_order">Υποβολή Παραγγελίας</string>
-    <string name="order_confirmation">Επιβεβαίωση Παραγγελίας</string>
+    <string name="order_confirmation">Ολοκλήρωση Παραγγελίας</string>
     <string name="thank_you_for_your_order">Ευχαριστούμε για την Παραγγελία σας!</string>
     <string name="order_id_format">Κωδικός Παραγγελίας: %1$s</string>
     <string name="order_date">Ημερομηνία: %1$s</string>
